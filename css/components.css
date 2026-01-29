@@ -18,3 +18,29 @@ This file contains styles for the components
 .task-input-field::placeholder {
     color: var(--text-secondary);
 }
+
+.task-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.task-item:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.task-toggle {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    background: none;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.task-text {
+    font-size: 14px;
+}
