@@ -15,3 +15,20 @@ function addTask(text) {
 
     tasks.push(task);
 }
+
+/**
+ * Toggle the completed of a task by its ID.
+ */
+
+function toggleTask(id) {
+    tasks = tasks.map(function (task) {
+        if (task.id === id) {
+            return {
+                ...task, completed: !task.completed
+            };
+        }
+
+        return task;
+    });
+}
+            
