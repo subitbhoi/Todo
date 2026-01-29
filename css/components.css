@@ -25,6 +25,8 @@ This file contains styles for the components
     gap: 12px;
     padding: 10px 20px;
     cursor: pointer;
+    transition: transform 250ms ease, opacity 250ms ease;
+    will-change: transform;
 }
 
 .task-item:hover {
