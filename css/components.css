@@ -1,0 +1,20 @@
+/* ==========================================================
+This file contains styles for the components 
+=============================================================*/
+
+.task-input {
+    padding: 12px 20px;
+}
+
+.task-input-field {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    padding: 10px 0;
+    color: var(--text-primary);
+}
+
+.task-input-field::placeholder {
+    color: var(--text-secondary);
+}

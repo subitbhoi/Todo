@@ -1,0 +1,22 @@
+/* ==========================================================
+This file defines the overall layout of the application 
+=============================================================*/
+
+.app {
+    max-width: 420px;
+    margin: 40px auto;
+    background-color: var(--card-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.app-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.app-title {
+    font-size: 20px;
+    font-weight: 500;
+}
