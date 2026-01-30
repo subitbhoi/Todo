@@ -44,6 +44,7 @@ This file contains styles for the components
 }
 
 .task-text {
+    outline: none;
     font-size: 14px;
 }
 
@@ -55,4 +56,15 @@ This file contains styles for the components
 .task-item.completed .task-toggle {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
+}
+
+.task-text[contenteditable="true"] {
+    outline: none;
+    box-shadow: none;
+    background-color: rgba(26, 115, 232, 0.08);
+    border-radius: 4px;
+}
+
+.task-text:focus {
+    outline: none;
 }

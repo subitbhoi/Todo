@@ -6,6 +6,28 @@ const taskListElement = document.querySelector(".task-list");
  * Renders the list of tasks to the DOM.
  */
 
+let currentlyEditingTaskId = null;
+
+function commitEditingIfAny() {
+    if (currentlyEditingTaskId === null) return;
+
+    const editingElement = document.querySelector(
+        `.task-item[data-id="${currentlyEditingTaskId}"] .task-text`
+    );
+
+    if (!editingElement) {
+        currentlyEditingTaskId = null;
+        return;
+    }
+
+    const newText = editingElement.textContent.trim();
+    if (newText !== "") {
+        updateTask(currentlyEditingTaskId, newText);
+    }
+
+    currentlyEditingTaskId = null;
+}
+
 function renderTasks() {
     const previousPositions = new Map();
 
@@ -34,14 +56,23 @@ function renderTasks() {
         taskToggle.className = "task-toggle";
         taskToggle.setAttribute("aria-label", "Toggle Task Completion");
 
+        taskToggle.addEventListener("pointerdown", function () {
+            commitEditingIfAny(); 
+        });
+
         taskToggle.addEventListener("click", function () {
             toggleTask(task.id);
             renderTasks();
         });
-
+        
         const taskText = document.createElement("span");
         taskText.className = "task-text";
         taskText.textContent = task.text;
+        taskText.setAttribute("tabindex", "0");
+
+        taskText.addEventListener("dblclick", function () {
+            startEditing(taskText, task.id);
+        });
 
         taskItem.appendChild(taskToggle);
         taskItem.appendChild(taskText);
@@ -69,4 +100,54 @@ function renderTasks() {
                 });
             }
     });
+}
+
+function startEditing(element, taskId) {
+    currentlyEditingTaskId = taskId;
+
+    const taskFromState = tasks.find(t => t.id === taskId)
+    const originalText = taskFromState.text;
+
+    element.contentEditable = "true";
+    element.focus();
+
+    //Move cursor to end
+    const range = document.createRange();
+    const selection = window.getSelection();
+
+    range.selectNodeContents(element);
+    range.collapse(false);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    function save() {
+        element.contentEditable = "false";
+        const newText = element.textContent.trim();
+        if (newText !== "") {
+            updateTask(taskId, newText);
+        }
+        currentlyEditingTaskId = null;
+        renderTasks();
+    }
+
+    function cancel() {
+        element.contentEditable = "false";
+        element.textContent = originalText;
+        currentlyEditingTaskId = null;
+        renderTasks();
+    }
+
+    element.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            save();
+        }
+        if (e.key === "Escape") {
+            e.preventDefault();
+            cancel();
+        }
+    });
+
+    element.addEventListener("blur", save, { once: true });
 }
