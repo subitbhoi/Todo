@@ -1,19 +1,22 @@
 // This file manages the application's data state
 
-let tasks = [];
+const STORAGE_KEY = "todo-app-tasks";
+
+let tasks = loadTasksFromStorage();
 
 /**
  * Creates a new task object and adds it to the tasks array.
  */
 
 function addTask(text) {
-    const task = {
-        id: Date.now(),
-        text: text,
-        completed: false
-    };
+  const task = {
+    id: Date.now(),
+    text,
+    completed: false
+  };
 
-    tasks.push(task);
+  tasks = [...tasks, task];
+  saveTasksToStorage();
 }
 
 /**
@@ -21,14 +24,39 @@ function addTask(text) {
  */
 
 function toggleTask(id) {
-    tasks = tasks.map(function (task) {
-        if (task.id === id) {
-            return {
-                ...task, completed: !task.completed
-            };
-        }
+  tasks = tasks.map(task =>
+    task.id === id
+      ? { ...task, completed: !task.completed }
+      : task
+  );
 
-        return task;
-    });
+  saveTasksToStorage();
 }
-            
+     
+function loadTasksFromStorage() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+
+        if (!Array.isArray(parsed)) return [];
+
+        return parsed.filter(task =>
+            typeof task.id === "number" &&
+            typeof task.text === "string" &&
+            typeof task.completed === "boolean"
+        );
+    } catch (error) {
+        console.error("Failed to load tasks from storage", error);
+        return [];
+    }
+}
+
+function saveTasksToStorage() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }catch (error) {
+        console.error("Failed to save tasks to storage", error);
+    }
+}
