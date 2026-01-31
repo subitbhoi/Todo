@@ -2,6 +2,8 @@
 
 const taskListElement = document.querySelector(".task-list");
 
+let draggedTaskId = null;
+
 /* ===== Render a single task item ===== */
 function renderTask(task) {
   const taskItem = document.createElement("div");
@@ -11,6 +13,30 @@ function renderTask(task) {
   if (task.completed) {
     taskItem.classList.add("completed");
   }
+
+  // Drag feature
+  taskItem.setAttribute("draggable", "true");
+  
+  taskItem.addEventListener("dragstart", function () {
+    draggedTaskId = task.id;
+    taskItem.classList.add("dragging");
+  });
+
+  taskItem.addEventListener("dragged", function () {
+    taskItem.classList.remove("dragging");
+    draggedTaskId =null;
+  });
+
+  taskItem.addEventListener("dragover", function (e) {
+    e.preventDefault();
+  });
+
+  taskItem.addEventListener("drop", function () {
+    if (draggedTaskId === null || draggedTaskId === task.id) return;
+
+    reorderTask(draggedTaskId, task.id);
+    renderTasks();
+  });
 
   //   Move up button
   const upButton = document.createElement("button");

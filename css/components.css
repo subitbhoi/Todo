@@ -35,6 +35,7 @@ This file contains styles for the components
     transition: transform 250ms ease, opacity 250ms ease;
     will-change: transform;
     transition: background-color 120ms ease;
+    cursor: grab;
 }
 
 .task-item:hover {
@@ -134,4 +135,12 @@ button:focus-visible, .task-edit-input:focus-visible {
 
 .task-move-up:hover, .task-move-down:hover {
     color: var(--text-primary);
+}
+
+.task-item.dragging {
+    opacity: 0.5;
+}
+
+.task-item:active {
+    cursor: grabbing;
 }

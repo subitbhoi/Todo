@@ -102,3 +102,19 @@ function moveTaskDown(id) {
     tasks = newTasks;
     saveTasksToStorage();
 }
+
+// Reorder logic
+function reorderTask(draggedId, targetId) {
+    const draggedIndex = tasks.findIndex(t => t.id === draggedId);
+    const targetIndex = tasks.findIndex(t => t.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    const updated = [...tasks];
+    const [moved] = updated.splice(draggedIndex, 1);
+
+    updated.splice(targetIndex, 0, moved);
+
+    tasks = updated;
+    saveTasksToStorage();
+}
