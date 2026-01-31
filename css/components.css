@@ -84,3 +84,8 @@ This file contains styles for the components
 .task-delete:hover {
     color: #f50202;
 }
+
+/* button:focus-visible, .task-edit-input:focus-visible {
+    outline: 2px solid #1a73e8;
+    outline-offset: 2px;
+} */
