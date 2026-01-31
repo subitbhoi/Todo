@@ -43,6 +43,10 @@ function renderTasks() {
         taskText.className = "task-text";
         taskText.textContent = task.text;
 
+        taskText.addEventListener("dblclick", function () {
+            startInlineEdit(taskItem, task);
+        });
+
         taskItem.appendChild(taskToggle);
         taskItem.appendChild(taskText);
 
@@ -68,5 +72,48 @@ function renderTasks() {
                     item.style.transition = "";
                 });
             }
+    });
+}
+
+function startInlineEdit(taskItem, task) {
+    const originalText = task.text;
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "task-edit-input";
+    input.value = originalText;
+
+    const textElement = taskItem.querySelector(".task-text");
+    taskItem.replaceChild(input, textElement);
+
+    input.focus();
+    input.select();
+
+    function save() {
+        const newText = input.value.trim();
+
+        if (newText && newText !== originalText) {
+            updateTask(task.id, newText);
+        }
+
+        renderTasks();
+    }
+
+    function cancel() {
+        renderTasks();
+    }
+
+    input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            save();
+        }
+
+        if (e.key === "Escape") {
+            cancel();
+        }
+    });
+
+    input.addEventListener("blur", function () {
+        save();
     });
 }

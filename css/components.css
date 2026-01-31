@@ -56,3 +56,12 @@ This file contains styles for the components
     background-color: var(--accent-color);
     border-color: var(--accent-color);
 }
+
+.task-edit-input {
+    font-size: inherit;
+    font-family: inherit;
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+}

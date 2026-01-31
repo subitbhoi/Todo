@@ -60,3 +60,13 @@ function saveTasksToStorage() {
         console.error("Failed to save tasks to storage", error);
     }
 }
+
+function updateTask(id, newText) {
+  tasks = tasks.map(task =>
+    task.id === id
+      ? { ...task, text: newText }
+      : task
+  );
+
+    saveTasksToStorage();
+}
