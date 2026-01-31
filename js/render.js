@@ -12,6 +12,8 @@ function renderTask(task) {
   taskItem.className = "task-item";
   taskItem.dataset.id = task.id;
 
+  taskItem.setAttribute("tabindex", "0");
+
   if (task.completed) {
     taskItem.classList.add("completed");
   }
@@ -109,6 +111,35 @@ function renderTask(task) {
     e.stopPropagation();
     moveTaskDown(task.id);
     renderTasks();
+  });
+
+  taskItem.addEventListener("keydown", function(e) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      taskItem.nextElementSibling?.focus();
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      taskItem.previousElementSibling?.focus();
+    }
+
+    if (e.key.toLowerCase() == "m") {
+      e.preventDefault();
+      toggleTask(task.id);
+      renderTasks();
+    }
+
+    if (e.key === "Delete") {
+      e.preventDefault();
+      deleteTask(task.id);
+      renderTasks();
+    }
+
+    if (e.key.toLowerCase() === "e") {
+      e.preventDefault()
+      startInlineEdit(taskItem, task);
+    }
   });
 
   //  Toggle completion
