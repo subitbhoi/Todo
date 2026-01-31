@@ -2,140 +2,170 @@
 
 const taskListElement = document.querySelector(".task-list");
 
-/**
- * Renders the list of tasks to the DOM.
- */
+/* ===== Render a single task item ===== */
+function renderTask(task) {
+  const taskItem = document.createElement("div");
+  taskItem.className = "task-item";
+  taskItem.dataset.id = task.id;
 
-function renderTasks() {
-    taskListElement.innerHTML = "";
+  if (task.completed) {
+    taskItem.classList.add("completed");
+  }
 
-    if (tasks.length === 0) {
-        const emptyState = document.createElement("div");
-        emptyState.className = "empty-state";
-        emptyState.textContent = "No tasks yet";
-        taskListElement.appendChild(emptyState);
-        return;
-    }
-    
-    const previousPositions = new Map();
+  //   Move up button
+  const upButton = document.createElement("button");
+  upButton.className = "task-move-up";
+  upButton.textContent = "↑";
+  upButton.setAttribute("aria-label", "Move task up");
 
-    //Measure current positions
-    document.querySelectorAll(".task-item").forEach(function (item) {
-        const id = item.dataset.id;
-        previousPositions.set(id, item.getBoundingClientRect());
-    });
+  upButton.addEventListener("click", function (e) {
+    e.stopPropagation();
+    moveTaskUp(task.id);
+    renderTasks();
+  });
 
-    taskListElement.innerHTML = "";
+  //   Move down button
+  const downButton = document.createElement("button");
+  downButton.className = "task-move-down";
+  downButton.textContent = "↓";
+  downButton.setAttribute("aria-label", "Move task down");
 
-    const sortedTasks = [...tasks].sort(function (a, b) {
-        return a.completed - b.completed;
-    });
+  downButton.addEventListener("click", function (e) {
+    e.stopPropagation();
+    moveTaskDown(task.id);
+    renderTasks();
+  });
 
-    sortedTasks.forEach(function (task) {
-        const taskItem = document.createElement("div");
-        taskItem.className = "task-item";
-        taskItem.dataset.id = task.id;
+  //  Toggle completion
+  const toggleButton = document.createElement("button");
+  toggleButton.className = "task-toggle";
+  toggleButton.setAttribute("aria-label", "Toggle task completion");
 
-        if (task.completed) {
-            taskItem.classList.add("completed");
-        }
+  toggleButton.addEventListener("click", function () {
+    toggleTask(task.id);
+    renderTasks();
+  });
 
-        const taskToggle = document.createElement("button");
-        taskToggle.className = "task-toggle";
-        taskToggle.setAttribute("aria-label", "Toggle Task Completion");
+  // Task text
+  const taskText = document.createElement("span");
+  taskText.className = "task-text";
+  taskText.textContent = task.text;
 
-        taskToggle.addEventListener("click", function () {
-            toggleTask(task.id);
-            renderTasks();
-        });
+  taskText.addEventListener("dblclick", function () {
+    startInlineEdit(taskItem, task);
+  });
 
-        const taskText = document.createElement("span");
-        taskText.className = "task-text";
-        taskText.textContent = task.text;
+  // Delete button
+  const deleteButton = document.createElement("button");
+  deleteButton.className = "task-delete";
+  deleteButton.textContent = "✕";
+  deleteButton.setAttribute("aria-label", "Delete task");
 
-        taskText.addEventListener("dblclick", function () {
-            startInlineEdit(taskItem, task);
-        });
+  deleteButton.addEventListener("click", function (e) {
+    e.stopPropagation();
+    deleteTask(task.id);
+    renderTasks();
+  });
 
-        const deleteButton = document.createElement("button");
-        deleteButton.className = "task-delete";
-        deleteButton.setAttribute("aria-label", "Delete task");
-        deleteButton.textContent = "✕"
+  // Append
+  taskItem.appendChild(upButton);
+  taskItem.appendChild(downButton);
+  taskItem.appendChild(toggleButton);
+  taskItem.appendChild(taskText);
+  taskItem.appendChild(deleteButton);
 
-        deleteButton.addEventListener("click", function (e) {
-            e.stopPropagation();
-            deleteTask(task.id);
-            renderTasks();
-        });
-
-        taskItem.appendChild(taskToggle);
-        taskItem.appendChild(taskText);
-        taskItem.appendChild(deleteButton);
-
-        taskListElement.appendChild(taskItem);
-    });
-
-        // Animate from old position to new position
-        document.querySelectorAll(".task-item").forEach(function (item) {
-            const id = item.dataset.id;
-            const oldPosition = previousPositions.get(id);
-
-            if (!oldPosition) return;
-
-            const newPosition = item.getBoundingClientRect();
-            const deltaY = oldPosition.top - newPosition.top;
-
-            if (deltaY) {
-                item.style.transform = `translateY(${deltaY}px)`;
-                item.style.transition = "none";
-
-                requestAnimationFrame(function () {
-                    item.style.transform = "";
-                    item.style.transition = "";
-                });
-            }
-    });
+  taskListElement.appendChild(taskItem);
 }
 
+/**
+ * Render all tasks with FLIP animation
+ */
+function renderTasks() {
+  const previousPositions = new Map();
+
+  // Measure old positions
+  document.querySelectorAll(".task-item").forEach(item => {
+    previousPositions.set(item.dataset.id, item.getBoundingClientRect());
+  });
+
+  taskListElement.innerHTML = "";
+
+  // Empty state
+  if (tasks.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No tasks yet";
+    taskListElement.appendChild(empty);
+    return;
+  }
+
+  // Split tasks (NO SORTING)
+  const activeTasks = tasks.filter(task => !task.completed);
+  const completedTasks = tasks.filter(task => task.completed);
+
+  // Render in two passes
+  activeTasks.forEach(renderTask);
+  completedTasks.forEach(renderTask);
+
+  // Animate position changes (FLIP)
+  document.querySelectorAll(".task-item").forEach(item => {
+    const oldPos = previousPositions.get(item.dataset.id);
+    if (!oldPos) return;
+
+    const newPos = item.getBoundingClientRect();
+    const deltaY = oldPos.top - newPos.top;
+
+    if (deltaY) {
+      item.style.transform = `translateY(${deltaY}px)`;
+      item.style.transition = "none";
+
+      requestAnimationFrame(() => {
+        item.style.transform = "";
+        item.style.transition = "";
+      });
+    }
+  });
+}
+
+/**
+ * Inline editing (state-first, safe)
+ */
 function startInlineEdit(taskItem, task) {
-    const originalText = task.text;
+  const originalText = task.text;
 
-    const input = document.createElement("input");
-    input.type = "text";
-    input.className = "task-edit-input";
-    input.value = originalText;
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "task-edit-input";
+  input.value = originalText;
 
-    const textElement = taskItem.querySelector(".task-text");
-    taskItem.replaceChild(input, textElement);
+  const textEl = taskItem.querySelector(".task-text");
+  taskItem.replaceChild(input, textEl);
 
-    input.focus();
-    input.select();
+  input.focus();
+  input.select();
 
-    function save() {
-        const newText = input.value.trim();
-
-        if (newText && newText !== originalText) {
-            updateTask(task.id, newText);
-        }
-
-        renderTasks();
+  function save() {
+    const value = input.value.trim();
+    if (value && value !== originalText) {
+      updateTask(task.id, value);
     }
+    renderTasks();
+  }
 
-    function cancel() {
-        renderTasks();
+  function cancel() {
+    renderTasks();
+  }
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      save();
     }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      cancel();
+    }
+  });
 
-    input.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-            save();
-        }
-
-        if (e.key === "Escape") {
-            cancel();
-        }
-    });
-
-    input.addEventListener("blur", function () {
-        save();
-    });
+  input.addEventListener("blur", save, { once: true });
 }

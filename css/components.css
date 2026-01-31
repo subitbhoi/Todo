@@ -117,3 +117,21 @@ button:focus-visible, .task-edit-input:focus-visible {
 .task-item.completed {
     opacity: 0.85;
 }
+
+.task-move-up, .task-move-down {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+
+.task-item:hover .task-move-up, .task-item:hover .task-move-down, .task-move-up:focus, .task-move-down:focus {
+    opacity: 1;
+}
+
+.task-move-up:hover, .task-move-down:hover {
+    color: var(--text-primary);
+}

@@ -75,3 +75,30 @@ function deleteTask(id) {
     tasks = tasks.filter(task => task.id !== id);
     saveTasksToStorage();
 }
+
+function moveTaskUp(id) {
+    const index = tasks.findIndex(task => task.id === id);
+
+    if (index <= 0) return;
+
+    const newTasks = [...tasks];
+
+    [newTasks[index - 1], newTasks[index]] = [newTasks[index], newTasks[index - 1]];
+
+    tasks = newTasks;
+    saveTasksToStorage();
+}
+
+function moveTaskDown(id) {
+    const index = tasks.findIndex(task => task.id ===id);
+
+    if (index === -1 || index >= tasks.length - 1) return;
+
+    const newTasks = [...tasks];
+
+    // [newTasks[index], newTasks[index - 1]] = [newTasks[index + 1], newTasks[index]];
+    [newTasks[index + 1], newTasks[index]] = [newTasks[index], newTasks[index + 1]];
+
+    tasks = newTasks;
+    saveTasksToStorage();
+}
