@@ -7,6 +7,16 @@ const taskListElement = document.querySelector(".task-list");
  */
 
 function renderTasks() {
+    taskListElement.innerHTML = "";
+
+    if (tasks.length === 0) {
+        const emptyState = document.createElement("div");
+        emptyState.className = "empty-state";
+        emptyState.textContent = "No tasks yet";
+        taskListElement.appendChild(emptyState);
+        return;
+    }
+    
     const previousPositions = new Map();
 
     //Measure current positions
