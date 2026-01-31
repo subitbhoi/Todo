@@ -3,6 +3,8 @@
 const taskListElement = document.querySelector(".task-list");
 
 let draggedTaskId = null;
+let touchDraggedTaskId = null;
+let touchStartY = 0;
 
 /* ===== Render a single task item ===== */
 function renderTask(task) {
@@ -36,6 +38,53 @@ function renderTask(task) {
 
     reorderTask(draggedTaskId, task.id);
     renderTasks();
+  });
+
+  // Drag drop touch functionality
+  taskItem.addEventListener("touchStart", function (e) {
+    if (e.touches.length !== 1) return;
+
+    touchDraggedTaskId = task.id;
+    touchStartY = e.touches[0].clientY;
+    taskItem.classList.add("dragging");
+
+    document.body.style.overflow = "hidden";
+  });
+
+  taskItem.addEventListener("touchmove", function (e) {
+    if (touchDraggedTaskId === null) return;
+
+    const touchY = e.touches.clientY;
+    const deltaY = touchY - touchStartY;
+
+    taskItem.style.transform = `translateY(${deltaY}px)`;
+  });
+
+  taskItem.addEventListener("touchend", function (e) {
+    if (touchDraggedTaskId === null) return;
+
+    taskItem.classList.remove("dragging");
+    taskItem.style.transform ="";
+
+    document.body.style.overflow = "";
+
+    const touchY = e.changedTouches[0].clientY;
+
+    const items = Array.from(document.querySelectorAll(".task-item"));
+    const target = items.find(item => {
+      const rect = item.getBoundingClientRect();
+      return touchY > rect.top && touchY < rect.bottom;
+    });
+
+    if (target) {
+      const targetId = Number(target.dataset.id);
+      if (targetId !== touchDraggedTaskId) {
+        reorderTask(touchDraggedTaskId, targetId);
+        renderTasks();
+      }
+    }
+
+    touchDraggedTaskId = null;
   });
 
   //   Move up button

@@ -138,7 +138,8 @@ button:focus-visible, .task-edit-input:focus-visible {
 }
 
 .task-item.dragging {
-    opacity: 0.5;
+    opacity: 0.8;
+    background-color: rgba(26, 115, 232, 0.08);
 }
 
 .task-item:active {
