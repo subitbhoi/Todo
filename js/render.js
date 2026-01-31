@@ -47,8 +47,20 @@ function renderTasks() {
             startInlineEdit(taskItem, task);
         });
 
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "task-delete";
+        deleteButton.setAttribute("aria-label", "Delete task");
+        deleteButton.textContent = "✕"
+
+        deleteButton.addEventListener("click", function (e) {
+            e.stopPropagation();
+            deleteTask(task.id);
+            renderTasks();
+        });
+
         taskItem.appendChild(taskToggle);
         taskItem.appendChild(taskText);
+        taskItem.appendChild(deleteButton);
 
         taskListElement.appendChild(taskItem);
     });

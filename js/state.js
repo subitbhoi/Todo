@@ -70,3 +70,8 @@ function updateTask(id, newText) {
 
     saveTasksToStorage();
 }
+
+function deleteTask(id) {
+    tasks = tasks.filter(task => task.id !== id);
+    saveTasksToStorage();
+}
