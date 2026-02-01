@@ -15,7 +15,7 @@ function addTask(text) {
     completed: false
   };
 
-  tasks = [...tasks, task];
+  tasks = [task, ...tasks];
   saveTasksToStorage();
 }
 

@@ -34,8 +34,9 @@ This file contains styles for the components
     cursor: pointer;
     transition: transform 250ms ease, opacity 250ms ease;
     will-change: transform;
-    transition: background-color 120ms ease;
-    cursor: grab;
+    /* transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1), opacity 150ms ease; */
+    /* transition: background-color 120ms ease; */
+    /* cursor: grab; */
 }
 
 .task-item:hover {
@@ -155,3 +156,26 @@ button:focus-visible, .task-edit-input:focus-visible {
 .task-item:active {
     cursor: grabbing;
 }
+
+.task-drag-handle {
+  background: none;
+  border: none;
+  cursor: grab;
+  color: #5f6368;
+  font-size: 16px;
+  /* padding: 4px 6px; */
+  opacity: 0;
+}
+
+.task-item:hover .task-drag-handle,
+.task-drag-handle:focus {
+  opacity: 1;
+}
+
+.task-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* .task-item.dragging {
+  opacity: 0.6;
+} */

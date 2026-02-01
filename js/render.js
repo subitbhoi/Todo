@@ -2,77 +2,70 @@
 
 const taskListElement = document.querySelector(".task-list");
 
+// Drag state
 let draggedTaskId = null;
 let touchDraggedTaskId = null;
 let touchStartY = 0;
 
-/* ===== Render a single task item ===== */
+/* ===============================
+   Render a single task
+================================ */
 function renderTask(task) {
   const taskItem = document.createElement("div");
   taskItem.className = "task-item";
   taskItem.dataset.id = task.id;
-
   taskItem.setAttribute("tabindex", "0");
 
   if (task.completed) {
     taskItem.classList.add("completed");
   }
 
-  // Drag feature
-  taskItem.setAttribute("draggable", "true");
-  
-  taskItem.addEventListener("dragstart", function () {
+  /* ===== Drag Handle ===== */
+  const dragHandle = document.createElement("button");
+  dragHandle.className = "task-drag-handle";
+  dragHandle.textContent = "⋮⋮";
+  dragHandle.setAttribute("aria-label", "Reorder task");
+  dragHandle.setAttribute("draggable", "true");
+
+  // Desktop drag start
+  dragHandle.addEventListener("dragstart", function (e) {
     draggedTaskId = task.id;
     taskItem.classList.add("dragging");
+    e.dataTransfer.setDragImage(taskItem, 20, 20);
+    e.dataTransfer.setData("text/plain", "");
   });
 
-  taskItem.addEventListener("dragged", function () {
+  dragHandle.addEventListener("dragend", function () {
+    draggedTaskId = null;
     taskItem.classList.remove("dragging");
-    draggedTaskId =null;
   });
 
-  taskItem.addEventListener("dragover", function (e) {
-    e.preventDefault();
-  });
-
-  taskItem.addEventListener("drop", function () {
-    if (draggedTaskId === null || draggedTaskId === task.id) return;
-
-    reorderTask(draggedTaskId, task.id);
-    renderTasks();
-  });
-
-  // Drag drop touch functionality
-  taskItem.addEventListener("touchStart", function (e) {
+  // Mobile touch drag
+  dragHandle.addEventListener("touchstart", function (e) {
     if (e.touches.length !== 1) return;
 
     touchDraggedTaskId = task.id;
     touchStartY = e.touches[0].clientY;
     taskItem.classList.add("dragging");
-
     document.body.style.overflow = "hidden";
   });
 
-  taskItem.addEventListener("touchmove", function (e) {
-    if (touchDraggedTaskId === null) return;
-
-    const touchY = e.touches.clientY;
-    const deltaY = touchY - touchStartY;
-
+  dragHandle.addEventListener("touchmove", function (e) {
+    if (!touchDraggedTaskId) return;
+    const deltaY = e.touches[0].clientY - touchStartY;
     taskItem.style.transform = `translateY(${deltaY}px)`;
   });
 
-  taskItem.addEventListener("touchend", function (e) {
-    if (touchDraggedTaskId === null) return;
+  dragHandle.addEventListener("touchend", function (e) {
+    if (!touchDraggedTaskId) return;
 
     taskItem.classList.remove("dragging");
-    taskItem.style.transform ="";
-
+    taskItem.style.transform = "";
     document.body.style.overflow = "";
 
     const touchY = e.changedTouches[0].clientY;
-
     const items = Array.from(document.querySelectorAll(".task-item"));
+
     const target = items.find(item => {
       const rect = item.getBoundingClientRect();
       return touchY > rect.top && touchY < rect.bottom;
@@ -89,31 +82,52 @@ function renderTask(task) {
     touchDraggedTaskId = null;
   });
 
-  //   Move up button
-  const upButton = document.createElement("button");
-  upButton.className = "task-move-up";
-  upButton.textContent = "↑";
-  upButton.setAttribute("aria-label", "Move task up");
+  /* ===== Drop target ===== */
+  taskItem.addEventListener("dragover", e => e.preventDefault());
 
-  upButton.addEventListener("click", function (e) {
-    e.stopPropagation();
-    moveTaskUp(task.id);
+  taskItem.addEventListener("drop", function () {
+    if (!draggedTaskId || draggedTaskId === task.id) return;
+    reorderTask(draggedTaskId, task.id);
     renderTasks();
   });
 
-  //   Move down button
-  const downButton = document.createElement("button");
-  downButton.className = "task-move-down";
-  downButton.textContent = "↓";
-  downButton.setAttribute("aria-label", "Move task down");
+  /* ===== Toggle completion ===== */
+  const toggleButton = document.createElement("button");
+  toggleButton.className = "task-toggle";
+  toggleButton.setAttribute("aria-label", "Toggle task completion");
 
-  downButton.addEventListener("click", function (e) {
-    e.stopPropagation();
-    moveTaskDown(task.id);
+  toggleButton.addEventListener("click", function () {
+    toggleTask(task.id);
     renderTasks();
   });
 
-  taskItem.addEventListener("keydown", function(e) {
+  /* ===== Task text ===== */
+  const taskText = document.createElement("span");
+  taskText.className = "task-text";
+  taskText.textContent = task.text;
+
+  taskText.addEventListener("dblclick", function () {
+    startInlineEdit(taskItem, task);
+  });
+
+  /* ===== Delete ===== */
+  const deleteButton = document.createElement("button");
+  deleteButton.className = "task-delete";
+  deleteButton.textContent = "✕";
+  deleteButton.setAttribute("aria-label", "Delete task");
+
+  deleteButton.addEventListener("click", function (e) {
+    e.stopPropagation();
+    deleteTask(task.id);
+    renderTasks();
+  });
+
+  /* ===== Keyboard support ===== */
+  taskItem.addEventListener("keydown", function (e) {
+    if (e.target.tagName === "INPUT") {
+      return;
+    }
+
     if (e.key === "ArrowDown") {
       e.preventDefault();
       taskItem.nextElementSibling?.focus();
@@ -130,52 +144,50 @@ function renderTask(task) {
       renderTasks();
     }
 
-    if (e.key === "Delete") {
+    if (e.key === "Delete" || e.key === "Backspace") {
       e.preventDefault();
       deleteTask(task.id);
       renderTasks();
     }
 
     if (e.key.toLowerCase() === "e") {
-      e.preventDefault()
+      e.preventDefault();
       startInlineEdit(taskItem, task);
+    }
+
+    if (e.key.toLowerCase() == "u") {
+      e.preventDefault();
+
+      const prev = taskItem.previousElementSibling;
+      if (!prev) return;
+
+      const targetId = Number(prev.dataset.id);
+      reorderTask(task.id, targetId);
+      renderTasks();
+
+      requestAnimationFrame(() => {
+        document.querySelector(`.task-item[data-id="${task.id}"]`)?.focus();
+      });
+    }
+
+    if (e.key.toLowerCase() == "d") {
+      e.preventDefault();
+
+      const next = taskItem.nextElementSibling;
+      if (!next) return;
+
+      const targetId =  Number(next.dataset.id);
+      reorderTask(task.id, targetId);
+      renderTasks()
+
+      requestAnimationFrame(() => {
+        document.querySelector(`.task-item[data-id="${task.id}"]`)?.focus();
+      });
     }
   });
 
-  //  Toggle completion
-  const toggleButton = document.createElement("button");
-  toggleButton.className = "task-toggle";
-  toggleButton.setAttribute("aria-label", "Toggle task completion");
-
-  toggleButton.addEventListener("click", function () {
-    toggleTask(task.id);
-    renderTasks();
-  });
-
-  // Task text
-  const taskText = document.createElement("span");
-  taskText.className = "task-text";
-  taskText.textContent = task.text;
-
-  taskText.addEventListener("dblclick", function () {
-    startInlineEdit(taskItem, task);
-  });
-
-  // Delete button
-  const deleteButton = document.createElement("button");
-  deleteButton.className = "task-delete";
-  deleteButton.textContent = "✕";
-  deleteButton.setAttribute("aria-label", "Delete task");
-
-  deleteButton.addEventListener("click", function (e) {
-    e.stopPropagation();
-    deleteTask(task.id);
-    renderTasks();
-  });
-
-  // Append
-  taskItem.appendChild(upButton);
-  taskItem.appendChild(downButton);
+  /* ===== Append order ===== */
+  taskItem.appendChild(dragHandle);
   taskItem.appendChild(toggleButton);
   taskItem.appendChild(taskText);
   taskItem.appendChild(deleteButton);
@@ -183,20 +195,18 @@ function renderTask(task) {
   taskListElement.appendChild(taskItem);
 }
 
-/**
- * Render all tasks with FLIP animation
- */
+/* ===============================
+   Render all tasks (FLIP)
+================================ */
 function renderTasks() {
   const previousPositions = new Map();
 
-  // Measure old positions
   document.querySelectorAll(".task-item").forEach(item => {
     previousPositions.set(item.dataset.id, item.getBoundingClientRect());
   });
 
   taskListElement.innerHTML = "";
 
-  // Empty state
   if (tasks.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
@@ -205,15 +215,12 @@ function renderTasks() {
     return;
   }
 
-  // Split tasks (NO SORTING)
-  const activeTasks = tasks.filter(task => !task.completed);
-  const completedTasks = tasks.filter(task => task.completed);
+  const activeTasks = tasks.filter(t => !t.completed);
+  const completedTasks = tasks.filter(t => t.completed);
 
-  // Render in two passes
   activeTasks.forEach(renderTask);
   completedTasks.forEach(renderTask);
 
-  // Animate position changes (FLIP)
   document.querySelectorAll(".task-item").forEach(item => {
     const oldPos = previousPositions.get(item.dataset.id);
     if (!oldPos) return;
@@ -233,9 +240,9 @@ function renderTasks() {
   });
 }
 
-/**
- * Inline editing (state-first, safe)
- */
+/* ===============================
+   Inline Editing
+================================ */
 function startInlineEdit(taskItem, task) {
   const originalText = task.text;
 
