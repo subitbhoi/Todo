@@ -27,9 +27,10 @@ This file contains styles for the components
 }
 
 .task-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    row-gap: 4px;
+    gap: 6px;
     padding: 10px 20px;
     cursor: pointer;
     transition: transform 250ms ease, opacity 250ms ease;
@@ -37,6 +38,43 @@ This file contains styles for the components
     /* transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1), opacity 150ms ease; */
     /* transition: background-color 120ms ease; */
     /* cursor: grab; */
+}
+
+.task-main-row {
+    display: contents;
+}
+
+.task-main-row .task-text {
+    flex: 1;
+}
+
+.task-left-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.task-meta-row {
+  grid-column: 2 / 3;
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary)
+}
+
+.task-meta-row input {
+  font-size: 12px;
+  padding: 2px 4px;
+}
+
+.calendar-icon .clock-icon {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.due-icon {
+    font-size: 13px;
 }
 
 .task-item:hover {
@@ -179,3 +217,65 @@ button:focus-visible, .task-edit-input:focus-visible {
 /* .task-item.dragging {
   opacity: 0.6;
 } */
+
+
+/* .due-inputs {
+    display: none;
+    display: flex;
+    border: none;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 13px;
+    padding: 4px 6px;
+} */
+
+.due-inputs {
+    display: none;
+    font-size: 13px;
+    
+}
+
+.task-due {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-left: 28px;
+}
+
+#addDueBtn {
+    background: none;
+    border: none;
+    color: #1a73e8;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.task-meta-editable {
+    cursor: pointer;
+}
+
+.meta-clickable {
+    cursor: pointer;
+}
+
+/* .meta-clickable:hover, .task-text:not(.completed):hover {
+    text-decoration: underline;
+} */
+
+.task-item.completed .meta-clickable {
+  cursor: default;
+  opacity: 0.6;
+  text-decoration: none;
+}
+
+.meta-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 110px; /* 🔑 prevents shifting */
+}
+
+.meta-group input {
+  width: 100%;
+  font: inherit;
+}

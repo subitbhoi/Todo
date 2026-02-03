@@ -9,14 +9,79 @@ let tasks = loadTasksFromStorage();
  */
 
 function addTask(text) {
+    const now = new Date();
+  const dateInput = document.getElementById("dueDate");
+  const timeInput = document.getElementById("dueTime");
+
+  let dueAt = null;
+
+const hasDate = dateInput && dateInput.value;
+const hasTime = timeInput && timeInput.value;
+
+if (hasDate || hasTime) {
+  let datePart;
+  let timePart;
+
+  // Case 1: Date only → use current time
+  if (hasDate && !hasTime) {
+    datePart = dateInput.value;
+
+    timePart = now
+      .toTimeString()
+      .slice(0, 5); // HH:MM
+  }
+
+  // Case 2: Time only → use today
+  if (!hasDate && hasTime) {
+    datePart = now
+      .toISOString()
+      .slice(0, 10); // YYYY-MM-DD
+
+    timePart = timeInput.value;
+  }
+
+  // Case 3: Date + Time
+  if (hasDate && hasTime) {
+    datePart = dateInput.value;
+    timePart = timeInput.value;
+  }
+
+  const combined = new Date(`${datePart}T${timePart}`);
+
+  // ❌ Prevent past date/time
+  if (combined < now) {
+    alert("You cannot set a task in the past.");
+    return;
+  }
+
+  dueAt = combined.toISOString();
+}
   const task = {
     id: Date.now(),
-    text,
-    completed: false
+    text: text.trim(),
+    completed: false,
+    dueAt
   };
 
   tasks = [task, ...tasks];
   saveTasksToStorage();
+  renderTasks();
+
+  if (dateInput) dateInput.value = "";
+  if (timeInput) timeInput.value = "";
+
+  const dueInputsEl = document.querySelector(".due-inputs");
+  const addDueBtnEl = document.getElementById("addDueBtn");
+
+  if (dueInputsEl && addDueBtnEl) {
+  dueInputs.style.display = "none";
+  addDueBtn.style.display = "inline-block";
+  }
+
+  // reset inputs
+  dateInput.value = "";
+  timeInput.value = "";
+
 }
 
 /**
@@ -61,14 +126,18 @@ function saveTasksToStorage() {
     }
 }
 
-function updateTask(id, newText) {
-  tasks = tasks.map(task =>
-    task.id === id
-      ? { ...task, text: newText }
-      : task
-  );
+function updateTask(id, newText, newDueAt = undefined) {
+  tasks = tasks.map(task => {
+    if (task.id !== id) return task;
 
-    saveTasksToStorage();
+    return {
+      ...task,
+      text: newText,
+      ...(newDueAt !== undefined && { dueAt: newDueAt })
+    };
+  });
+
+  saveTasksToStorage();
 }
 
 function deleteTask(id) {

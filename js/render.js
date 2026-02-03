@@ -11,6 +11,15 @@ let touchStartY = 0;
    Render a single task
 ================================ */
 function renderTask(task) {
+  const mainRow = document.createElement("div");
+  mainRow.className = "task-main-row";
+
+  const metaRow = document.createElement("div");
+  metaRow.className = "task-meta-row task-meta-editable";
+
+  const leftControls = document.createElement("div");
+  leftControls.className = "task-left-controls";
+
   const taskItem = document.createElement("div");
   taskItem.className = "task-item";
   taskItem.dataset.id = task.id;
@@ -106,10 +115,6 @@ function renderTask(task) {
   taskText.className = "task-text";
   taskText.textContent = task.text;
 
-  taskText.addEventListener("dblclick", function () {
-    startInlineEdit(taskItem, task);
-  });
-
   /* ===== Delete ===== */
   const deleteButton = document.createElement("button");
   deleteButton.className = "task-delete";
@@ -144,13 +149,14 @@ function renderTask(task) {
       renderTasks();
     }
 
-    if (e.key === "Delete" || e.key === "Backspace") {
+    if (e.key === "Delete") {
       e.preventDefault();
       deleteTask(task.id);
       renderTasks();
     }
 
     if (e.key.toLowerCase() === "e") {
+      if (task.completed) return;
       e.preventDefault();
       startInlineEdit(taskItem, task);
     }
@@ -176,7 +182,7 @@ function renderTask(task) {
       const next = taskItem.nextElementSibling;
       if (!next) return;
 
-      const targetId =  Number(next.dataset.id);
+      const targetId = Number(next.dataset.id);
       reorderTask(task.id, targetId);
       renderTasks()
 
@@ -187,10 +193,77 @@ function renderTask(task) {
   });
 
   /* ===== Append order ===== */
-  taskItem.appendChild(dragHandle);
-  taskItem.appendChild(toggleButton);
-  taskItem.appendChild(taskText);
-  taskItem.appendChild(deleteButton);
+  leftControls.appendChild(dragHandle);
+  leftControls.appendChild(toggleButton);
+
+  mainRow.appendChild(leftControls);
+  mainRow.appendChild(taskText);
+  mainRow.appendChild(deleteButton);
+
+  mainRow.addEventListener("dblclick", e => {
+    if (task.completed) return;
+    // ignore buttons (toggle, delete, drag)
+    if (e.target.closest("button")) return;
+
+    startInlineEdit(taskItem, task);
+  });
+
+
+  taskItem.appendChild(mainRow);
+
+  /*=====Due date =====*/
+  if (task.dueAt) {
+    const date = new Date(task.dueAt);
+
+    const calendarIcon = createCalendarIcon();
+    calendarIcon.classList.add("meta-clickable");
+
+    const dateText = document.createElement("span");
+    dateText.className = "task-date-text meta-clickable";
+    dateText.textContent = date.toLocaleDateString(undefined, {
+      dateStyle: "medium"
+    });
+
+    const clockIcon = createClockIcon();
+    clockIcon.classList.add("meta-clickable");
+
+    const timeText = document.createElement("span");
+    timeText.className = "task-time-text meta-clickable";
+    timeText.textContent = date.toLocaleTimeString(undefined, {
+      timeStyle: "short"
+    });
+
+    metaRow.appendChild(calendarIcon);
+    metaRow.appendChild(dateText);
+    metaRow.appendChild(clockIcon);
+    metaRow.appendChild(timeText);
+
+    taskItem.appendChild(metaRow);
+
+    calendarIcon.addEventListener("dblclick", e => {
+      e.stopPropagation();
+      if (task.completed) return;
+      startInlineDueEdit(taskItem, task, "date");
+    });
+
+    dateText.addEventListener("dblclick", e => {
+      e.stopPropagation();
+      if (task.completed) return;
+      startInlineDueEdit(taskItem, task, "date");
+    });
+
+    clockIcon.addEventListener("dblclick", e => {
+      e.stopPropagation();
+      if (task.completed) return;
+      startInlineDueEdit(taskItem, task, "time");
+    });
+
+    timeText.addEventListener("dblclick", e => {
+      e.stopPropagation();
+      if (task.completed) return;
+      startInlineDueEdit(taskItem, task, "time");
+    });
+  }
 
   taskListElement.appendChild(taskItem);
 }
@@ -251,13 +324,22 @@ function startInlineEdit(taskItem, task) {
   input.className = "task-edit-input";
   input.value = originalText;
 
+  // Find the text element and its parent (mainRow)
   const textEl = taskItem.querySelector(".task-text");
-  taskItem.replaceChild(input, textEl);
+  const mainRow = taskItem.querySelector(".task-main-row");
+
+  // Replace within the correct parent
+  mainRow.replaceChild(input, textEl);
 
   input.focus();
   input.select();
 
+  let saved = false;
+
   function save() {
+    if (saved) return;
+    saved = true;
+
     const value = input.value.trim();
     if (value && value !== originalText) {
       updateTask(task.id, value);
@@ -266,6 +348,8 @@ function startInlineEdit(taskItem, task) {
   }
 
   function cancel() {
+    if (saved) return;
+    saved = true;
     renderTasks();
   }
 
@@ -282,3 +366,128 @@ function startInlineEdit(taskItem, task) {
 
   input.addEventListener("blur", save, { once: true });
 }
+
+/*===== Due inline edit =====*/
+function startInlineDueEdit(taskItem, task) {
+  const originalDueAt = task.dueAt;
+  const originalDate = new Date(originalDueAt);
+
+  const metaRow = taskItem.querySelector(".task-meta-row");
+  metaRow.innerHTML = "";
+
+  const dateInput = document.createElement("input");
+  dateInput.type = "date";
+  dateInput.value = originalDate.toISOString().slice(0, 10);
+
+  const timeInput = document.createElement("input");
+  timeInput.type = "time";
+  timeInput.value = originalDate.toTimeString().slice(0, 5);
+
+  metaRow.appendChild(dateInput);
+  metaRow.appendChild(timeInput);
+
+  dateInput.focus();
+
+  let saved = false;
+
+  function save() {
+    if (saved) return;
+    saved = true;
+
+    const now = new Date();
+    const hasDate = dateInput.value;
+    const hasTime = timeInput.value;
+
+    if (!hasDate && !hasTime) {
+      renderTasks();
+      return;
+    }
+
+    const datePart = hasDate
+      ? dateInput.value
+      : now.toISOString().slice(0, 10);
+
+    const timePart = hasTime
+      ? timeInput.value
+      : now.toTimeString().slice(0, 5);
+
+    const combined = new Date(`${datePart}T${timePart}`);
+
+    if (combined < now) {
+      alert("You cannot set a task in the past.");
+      renderTasks();
+      return;
+    }
+
+    updateTask(task.id, task.text, combined.toISOString());
+    renderTasks();
+  }
+
+  function cancel() {
+    if (saved) return;
+    saved = true;
+    renderTasks();
+  }
+
+  metaRow.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      save();
+    }
+
+    if (e.key === "Escape") {
+      e.preventDefault();
+      cancel();
+    }
+  });
+
+  // Use focusout on metaRow to detect when focus leaves BOTH inputs
+  metaRow.addEventListener("focusout", function (e) {
+    // If focus is moving to the other input inside metaRow, don't save yet
+    if (metaRow.contains(e.relatedTarget)) return;
+    save();
+  });
+}
+
+/* ===============================
+   Callender and Clock Icon
+================================ */
+function createCalendarIcon() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("width", "16");
+  svg.setAttribute("height", "16");
+  svg.classList.add("calendar-icon");
+
+  svg.innerHTML = `
+    <rect x="3" y="4" width="18" height="18" rx="2"
+      stroke="currentColor" stroke-width="1.5" fill="none"/>
+    <line x1="3" y1="9" x2="21" y2="9"
+      stroke="currentColor" stroke-width="1.5"/>
+    <line x1="8" y1="2.5" x2="8" y2="6"
+      stroke="currentColor" stroke-width="1.5"/>
+    <line x1="16" y1="2.5" x2="16" y2="6"
+      stroke="currentColor" stroke-width="1.5"/>
+  `;
+
+  return svg;
+}
+
+function createClockIcon() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("width", "16");
+  svg.setAttribute("height", "16");
+  svg.classList.add("clock-icon");
+
+  svg.innerHTML = `
+    <circle cx="12" cy="12" r="9"
+      stroke="currentColor" stroke-width="1.5" fill="none"/>
+    <path d="M12 7v5l3 2"
+      stroke="currentColor" stroke-width="1.5"
+      stroke-linecap="round"/>
+  `;
+
+  return svg;
+}
+
