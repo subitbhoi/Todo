@@ -279,3 +279,56 @@ button:focus-visible, .task-edit-input:focus-visible {
   width: 100%;
   font: inherit;
 }
+
+/* =========================
+   Due Reminder Visuals
+========================= */
+
+.task-item {
+  position: relative;
+  transition: background-color 0.3s ease, border-left-color 0.3s ease;
+}
+
+/* Upcoming (within 30 mins) */
+.task-item.due-soon {
+    border-left: 4px solid rgba(255, 193, 7, 0.8);
+    background-color: rgba(255, 193, 7, 0.06);
+    animation: dueSoonPulse 2s infinite;
+}
+
+/* Overdue */
+.task-item.overdue {
+  background: rgba(255, 82, 82, 0.08);
+  border-left: 4px solid #ff5252;
+}
+
+/* Badge */
+.task-item .due-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.task-item .due-badge.soon {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.task-item .due-badge.overdue {
+  background: #ffe3e3;
+  color: #b00020;
+}
+
+/* Pulse animation */
+@keyframes dueSoonPulse {
+    0% {background-color: rgba(255, 193, 7, 0)}
+    /* 25% {background-color: rgba(255, 193, 7, 0.12)} */
+    /* 50% {background-color: rgba(255, 193, 7, 0.3)} */
+    /* 75% {background-color: rgba(255, 193, 7, 0.45);} */
+    100% {background-color: rgba(255, 193, 7, 0.205)}
+}
+

@@ -13,3 +13,5 @@ addDueBtn.addEventListener("click", () => {
   dueInputs.style.display = "flex";
   addDueBtn.style.display = "none";
 });
+
+startReminderEngine();

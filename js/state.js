@@ -60,7 +60,8 @@ if (hasDate || hasTime) {
     id: Date.now(),
     text: text.trim(),
     completed: false,
-    dueAt
+    dueAt,
+    reminded: false
   };
 
   tasks = [task, ...tasks];
@@ -126,16 +127,31 @@ function saveTasksToStorage() {
     }
 }
 
-function updateTask(id, newText, newDueAt = undefined) {
-  tasks = tasks.map(task => {
-    if (task.id !== id) return task;
+// function updateTask(id, newText, newDueAt = undefined) {
+//   tasks = tasks.map(task => {
+//     if (task.id !== id) return task;
 
-    return {
+//     return {
+//       ...task,
+//       text: newText,
+//       ...(newDueAt !== undefined && { dueAt: newDueAt })
+//     };
+//   });
+
+//   saveTasksToStorage();
+// }
+
+function updateTask(id, newText, newDueAt = null) {
+  tasks = tasks.map(task =>
+    task.id === id
+    ? {
       ...task,
-      text: newText,
-      ...(newDueAt !== undefined && { dueAt: newDueAt })
-    };
-  });
+      text: newText ?? task.text,
+      dueAt: newDueAt ?? task.dueAt,
+      reminded: newDueAt ? false : task.reminded
+    }
+    : task
+  );
 
   saveTasksToStorage();
 }

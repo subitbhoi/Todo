@@ -29,6 +29,36 @@ function renderTask(task) {
     taskItem.classList.add("completed");
   }
 
+  if (task.dueAt && !task.completed) {
+  const now = new Date();
+  const due = new Date(task.dueAt);
+  const diffMs = due - now;
+  const diffMinutes = diffMs / 60000;
+
+  // Remove old states
+  taskItem.classList.remove("due-soon", "overdue");
+
+  if (!task.completed && task.dueAt) {
+    const dueDate =  new Date(task.dueAt);
+    const diffMs = dueDate - new Date();
+    const diffMinutes = Math.floor(diffMs / 60000);
+
+    if (diffMs <= 0) {
+      taskItem.classList.add("overdue");
+      addDueBadge(taskItem, "overdue", "overdue");
+    }
+    else if (diffMinutes <= 30) {
+      if (!task.reminded) {
+        taskItem.classList.add("due-soon");
+      } else {
+        taskItem.classList.add("overdue");
+      }
+
+      addDueBadge(taskItem, "due soon", "soon");
+    }
+  }
+}
+
   /* ===== Drag Handle ===== */
   const dragHandle = document.createElement("button");
   dragHandle.className = "task-drag-handle";
@@ -311,6 +341,17 @@ function renderTasks() {
       });
     }
   });
+}
+
+function addDueBadge(taskItem, text, type) {
+  // prevent duplicates
+  if (taskItem.querySelector(".due-badge")) return;
+
+  const badge = document.createElement("span");
+  badge.className = `due-badge ${type}`;
+  badge.textContent = text;
+
+  taskItem.appendChild(badge);
 }
 
 /* ===============================
