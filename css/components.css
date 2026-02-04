@@ -37,9 +37,6 @@ This file contains styles for the components
     will-change: transform;
     border-left: 4px solid transparent;
     transition: border-left-color 200ms ease;
-    /* transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1), opacity 150ms ease; */
-    /* transition: background-color 120ms ease; */
-    /* cursor: grab; */
 }
 
 .task-main-row {
@@ -82,11 +79,6 @@ This file contains styles for the components
 .task-item:hover {
     background-color: rgba(0, 0, 0, 0.03);
 }
-
-/* .task-item:focus-visible .task-toggle {
-    background-color: var(--radio-color);
-    border-color: var(--radio-color);
-} */
 
 .task-item:focus {
     outline: none;
@@ -158,7 +150,6 @@ This file contains styles for the components
 
 button:focus-visible, .task-edit-input:focus-visible {
     border-bottom: 1px solid var(--text-secondary);
-    /* outline-offset: 2px; */
 }
 
 
@@ -203,7 +194,6 @@ button:focus-visible, .task-edit-input:focus-visible {
   cursor: grab;
   color: #5f6368;
   font-size: 16px;
-  /* padding: 4px 6px; */
   opacity: 0;
 }
 
@@ -215,21 +205,6 @@ button:focus-visible, .task-edit-input:focus-visible {
 .task-drag-handle:active {
   cursor: grabbing;
 }
-
-/* .task-item.dragging {
-  opacity: 0.6;
-} */
-
-
-/* .due-inputs {
-    display: none;
-    display: flex;
-    border: none;
-    gap: 8px;
-    margin-top: 6px;
-    font-size: 13px;
-    padding: 4px 6px;
-} */
 
 .due-inputs {
     display: none;
@@ -260,10 +235,6 @@ button:focus-visible, .task-edit-input:focus-visible {
     cursor: pointer;
 }
 
-/* .meta-clickable:hover, .task-text:not(.completed):hover {
-    text-decoration: underline;
-} */
-
 .task-item.completed .meta-clickable {
   cursor: default;
   opacity: 0.6;
@@ -292,9 +263,8 @@ button:focus-visible, .task-edit-input:focus-visible {
   transition: background-color 0.3s ease, border-left-color 0.3s ease;
 }
 
-/* Upcoming (within 30 mins) */
+/*Upcoming (within 30 mins)*/
 .task-item.due-soon {
-    /* border-left: 4px solid rgba(255, 193, 7, 0.8); */
     background-color: rgba(255, 193, 7, 0.06);
     animation: dueSoonPulse 2s infinite ease;
     border-left-color: rgba(255, 193, 7, 0.8);
@@ -315,10 +285,6 @@ button:focus-visible, .task-edit-input:focus-visible {
   margin-left: 4px;
 }
 
-.due-badge {
-    pointer-events: none;
-}
-
 .due-badge.soon {
   background: #fff3cd;
   color: #856404;
@@ -331,14 +297,67 @@ button:focus-visible, .task-edit-input:focus-visible {
 
 /* Pulse animation */
 @keyframes dueSoonPulse {
-    0% {background-color: rgba(255, 193, 7, 0)}
-    /* 25% {background-color: rgba(255, 193, 7, 0.12)} */
-    /* 50% {background-color: rgba(255, 193, 7, 0.3)} */
-    /* 75% {background-color: rgba(255, 193, 7, 0.45);} */
-    100% {background-color: rgba(255, 193, 7, 0.15)}
+    0% { background-color: rgba(255, 193, 7, 0); }
+    100% { background-color: rgba(255, 193, 7, 0.15); }
 }
 
+/* =========================
+   Due Badges
+========================= */
+
 .due-badge {
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    opacity 150ms ease;
 }
+
+/* > 1 day */
+.due-badge.due-far {
+  background: #e0e0e0;
+  color: #555;
+}
+
+/* < 1 hour */
+.due-badge.due-warning {
+  background: #fff3cd;
+  color: #856404;
+ 
+}
+
+/* < 30 minutes */
+.due-badge.due-soon {
+  background: #ffe0b2;
+  color: #e65100;
+}
+
+/* Overdue */
+.due-badge.overdue {
+  background: #ffe3e3;
+  color: #b00020;
+}
+
+/* =========================
+   Pulse (ONLY <15 mins)
+========================= */
+
+.task-item.due-pulse {
+  border-left: 4px solid rgba(255, 147, 7, 0.9);
+  animation: pulseBg 2s infinite ease-in-out;
+}
+
+@keyframes pulseBg {
+  0% { background-color: rgba(255, 147, 7, 0.05); }
+  50% { background-color: rgba(255, 147, 7, 0.18); }
+  100% { background-color: rgba(255, 147, 7, 0.05); }
+}
+
+
+

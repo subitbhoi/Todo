@@ -24,6 +24,6 @@ function startReminderEngine() {
       saveTasksToStorage();
       renderTasks();
     }
-  }, 5_000); // every 30 seconds
+  }, 5_000); 
 }
 

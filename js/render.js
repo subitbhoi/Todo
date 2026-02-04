@@ -29,28 +29,23 @@ function renderTask(task) {
     taskItem.classList.add("completed");
   }
 
-if (task.dueAt && !task.completed) {
+  if (task.dueAt && !task.completed) {
   const now = new Date();
   const dueDate = new Date(task.dueAt);
   const diffMs = dueDate - now;
-  const diffMinutes = Math.floor(diffMs / 60000);
 
   taskItem.classList.remove("due-soon", "overdue");
 
   if (diffMs <= 0) {
     taskItem.classList.add("overdue");
-  } else if (diffMinutes <= 30) {
+  } 
+  else if (diffMs <= 15 * 60 * 1000) {
+    // ONLY pulse in last 15 minutes
     taskItem.classList.add("due-soon");
   }
-
-  // badge text (used later)
-  var dueLabel =
-    diffMs <= 0
-      ? "Overdue"
-      : formatRemainingTime(diffMs);
 }
 
-  /* ===== Drag Handle ===== */
+/* ===== Drag Handle ===== */
   const dragHandle = document.createElement("button");
   dragHandle.className = "task-drag-handle";
   dragHandle.textContent = "⋮⋮";
@@ -260,13 +255,46 @@ if (task.dueAt && !task.completed) {
     timeGroup.appendChild(clockIcon);
     timeGroup.appendChild(timeText);
 
+
     if (task.dueAt && !task.completed) {
-    if (taskItem.classList.contains("overdue")) {
-      addDueBadge(timeGroup, "Overdue", "overdue");
-    } else if (taskItem.classList.contains("due-soon")) {
-      addDueBadge(timeGroup, dueLabel, "soon");
-    }
+  const now = new Date();
+  const diffMs = new Date(task.dueAt) - now;
+
+  const DAY = 24 * 60 * 60 * 1000;
+  const HOUR = 60 * 60 * 1000;
+  const MIN30 = 30 * 60 * 1000;
+  const MIN15 = 15 * 60 * 1000;
+
+  let badgeType = null;
+  let badgeText = null;
+
+  if (diffMs <= 0) {
+    badgeType = "overdue";
+    badgeText = "Overdue";
+  } else if (diffMs < MIN30) {
+    badgeType = "due-soon";
+    badgeText = formatRemainingTime(diffMs);
+  } else if (diffMs < HOUR) {
+    badgeType = "due-warning";
+    badgeText = formatRemainingTime(diffMs);
+  } else if (diffMs <= 7 * DAY) {
+    badgeType = "due-far";
+    badgeText = formatRemainingTime(diffMs);
   }
+
+  // Add badge ONLY if <= 7 days
+  if (badgeType) {
+    addDueBadge(timeGroup, badgeText, badgeType);
+  }
+
+  // 🔥 Pulse ONLY <15 mins
+  if (diffMs < MIN15 && diffMs > 0) {
+    taskItem.classList.add("due-pulse");
+  } else {
+    taskItem.classList.remove("due-pulse");
+  }
+}
+
 
     metaRow.appendChild(calendarIcon);
     metaRow.appendChild(dateText);
@@ -539,26 +567,26 @@ function createClockIcon() {
 }
 
 function formatRemainingTime(ms) {
-  if (ms <= 0) {
-    const seconds = Math.floor(ms / 1000);
-    return `${seconds}s left`;
-  }
+  if (ms <= 0) return "Overdue";
 
   const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalDays = Math.floor(totalHours / 24);
 
-  if (minutes >= 60) {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m left`;
+  if (totalDays >= 1) {
+    return `${totalDays}d left`;
   }
 
-  if (minutes > 0) {
-    return `${minutes}m left`;
+  if (totalHours >= 1) {
+    return `${totalHours}h left`;
   }
 
-  return `${seconds}s left`;
+  if (totalMinutes >= 1) {
+    return `${totalMinutes}m left`;
+  }
+
+  return `${totalSeconds}s left`;
 }
 
 function updateCountdownBadges() {
@@ -571,7 +599,15 @@ function updateCountdownBadges() {
     if (!badge) return;
 
     const diff = new Date(task.dueAt) - new Date();
-    badge.textContent = diff <= 0 ? "Overdue" : formatRemainingTime(diff);
+    const newText = diff <= 0 ? "Overdue" : formatRemainingTime(diff);
+
+    if (badge.textContent !== newText) {
+      badge.style.opacity = "0";
+      setTimeout(() => {
+        badge.textContent = newText;
+        badge.style.opacity = "1";
+      }, 120);
+    }
   });
 }
 
