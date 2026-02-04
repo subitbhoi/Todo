@@ -127,20 +127,6 @@ function saveTasksToStorage() {
     }
 }
 
-// function updateTask(id, newText, newDueAt = undefined) {
-//   tasks = tasks.map(task => {
-//     if (task.id !== id) return task;
-
-//     return {
-//       ...task,
-//       text: newText,
-//       ...(newDueAt !== undefined && { dueAt: newDueAt })
-//     };
-//   });
-
-//   saveTasksToStorage();
-// }
-
 function updateTask(id, newText, newDueAt = null) {
   tasks = tasks.map(task =>
     task.id === id

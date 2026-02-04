@@ -15,3 +15,7 @@ addDueBtn.addEventListener("click", () => {
 });
 
 startReminderEngine();
+
+setInterval(() => {
+  renderTasks();
+}, 60_000);

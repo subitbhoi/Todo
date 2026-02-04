@@ -35,6 +35,8 @@ This file contains styles for the components
     cursor: pointer;
     transition: transform 250ms ease, opacity 250ms ease;
     will-change: transform;
+    border-left: 4px solid transparent;
+    transition: border-left-color 200ms ease;
     /* transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1), opacity 150ms ease; */
     /* transition: background-color 120ms ease; */
     /* cursor: grab; */
@@ -273,6 +275,7 @@ button:focus-visible, .task-edit-input:focus-visible {
   align-items: center;
   gap: 6px;
   min-width: 110px; /* 🔑 prevents shifting */
+  white-space: nowrap;
 }
 
 .meta-group input {
@@ -291,34 +294,37 @@ button:focus-visible, .task-edit-input:focus-visible {
 
 /* Upcoming (within 30 mins) */
 .task-item.due-soon {
-    border-left: 4px solid rgba(255, 193, 7, 0.8);
+    /* border-left: 4px solid rgba(255, 193, 7, 0.8); */
     background-color: rgba(255, 193, 7, 0.06);
     animation: dueSoonPulse 2s infinite ease;
+    border-left-color: rgba(255, 193, 7, 0.8);
 }
 
 /* Overdue */
 .task-item.overdue {
   background: rgba(255, 82, 82, 0.08);
-  border-left: 4px solid #ff5252;
+  /* border-left: 4px solid #ff5252; */
+  border-left-color:#ff5252 ;
 }
 
 /* Badge */
-.task-item .due-badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
+.meta-group .due-badge {
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 999px;
-  font-weight: 600;
+  margin-left: 4px;
 }
 
-.task-item .due-badge.soon {
+.due-badge {
+    pointer-events: none;
+}
+
+.due-badge.soon {
   background: #fff3cd;
   color: #856404;
 }
 
-.task-item .due-badge.overdue {
+.due-badge.overdue {
   background: #ffe3e3;
   color: #b00020;
 }
@@ -332,3 +338,7 @@ button:focus-visible, .task-edit-input:focus-visible {
     100% {background-color: rgba(255, 193, 7, 0.15)}
 }
 
+.due-badge {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}

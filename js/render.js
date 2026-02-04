@@ -29,34 +29,25 @@ function renderTask(task) {
     taskItem.classList.add("completed");
   }
 
-  if (task.dueAt && !task.completed) {
+if (task.dueAt && !task.completed) {
   const now = new Date();
-  const due = new Date(task.dueAt);
-  const diffMs = due - now;
-  const diffMinutes = diffMs / 60000;
+  const dueDate = new Date(task.dueAt);
+  const diffMs = dueDate - now;
+  const diffMinutes = Math.floor(diffMs / 60000);
 
-  // Remove old states
   taskItem.classList.remove("due-soon", "overdue");
 
-  if (!task.completed && task.dueAt) {
-    const dueDate =  new Date(task.dueAt);
-    const diffMs = dueDate - new Date();
-    const diffMinutes = Math.floor(diffMs / 60000);
-
-    if (diffMs <= 0) {
-      taskItem.classList.add("overdue");
-      addDueBadge(taskItem, "overdue", "overdue");
-    }
-    else if (diffMinutes <= 30) {
-      if (!task.reminded) {
-        taskItem.classList.add("due-soon");
-      } else {
-        taskItem.classList.add("overdue");
-      }
-
-      addDueBadge(taskItem, "due soon", "soon");
-    }
+  if (diffMs <= 0) {
+    taskItem.classList.add("overdue");
+  } else if (diffMinutes <= 30) {
+    taskItem.classList.add("due-soon");
   }
+
+  // badge text (used later)
+  var dueLabel =
+    diffMs <= 0
+      ? "Overdue"
+      : formatRemainingTime(diffMs);
 }
 
   /* ===== Drag Handle ===== */
@@ -254,6 +245,9 @@ function renderTask(task) {
       dateStyle: "medium"
     });
 
+    const timeGroup = document.createElement("span");
+    timeGroup.className = "meta-group";
+
     const clockIcon = createClockIcon();
     clockIcon.classList.add("meta-clickable");
 
@@ -262,13 +256,24 @@ function renderTask(task) {
     timeText.textContent = date.toLocaleTimeString(undefined, {
       timeStyle: "short"
     });
+ 
+    timeGroup.appendChild(clockIcon);
+    timeGroup.appendChild(timeText);
+
+    if (task.dueAt && !task.completed) {
+    if (taskItem.classList.contains("overdue")) {
+      addDueBadge(timeGroup, "Overdue", "overdue");
+    } else if (taskItem.classList.contains("due-soon")) {
+      addDueBadge(timeGroup, dueLabel, "soon");
+    }
+  }
 
     metaRow.appendChild(calendarIcon);
     metaRow.appendChild(dateText);
-    metaRow.appendChild(clockIcon);
-    metaRow.appendChild(timeText);
+    metaRow.appendChild(timeGroup);
 
     taskItem.appendChild(metaRow);
+
 
     calendarIcon.addEventListener("dblclick", e => {
       e.stopPropagation();
@@ -297,6 +302,7 @@ function renderTask(task) {
 
   taskListElement.appendChild(taskItem);
 }
+
 
 /* ===============================
    Render all tasks (FLIP)
@@ -343,15 +349,15 @@ function renderTasks() {
   });
 }
 
-function addDueBadge(taskItem, text, type) {
+function addDueBadge(container, text, type) {
   // prevent duplicates
-  if (taskItem.querySelector(".due-badge")) return;
+  if (container.querySelector(".due-badge")) return;
 
   const badge = document.createElement("span");
   badge.className = `due-badge ${type}`;
   badge.textContent = text;
 
-  taskItem.appendChild(badge);
+  container.appendChild(badge);
 }
 
 /* ===============================
@@ -532,3 +538,41 @@ function createClockIcon() {
   return svg;
 }
 
+function formatRemainingTime(ms) {
+  if (ms <= 0) {
+    const seconds = Math.floor(ms / 1000);
+    return `${seconds}s left`;
+  }
+
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m left`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m left`;
+  }
+
+  return `${seconds}s left`;
+}
+
+function updateCountdownBadges() {
+  document.querySelectorAll(".task-item").forEach(item => {
+    const id = Number(item.dataset.id);
+    const task = tasks.find(t => t.id === id);
+    if (!task || !task.dueAt || task.completed) return;
+
+    const badge = item.querySelector(".due-badge");
+    if (!badge) return;
+
+    const diff = new Date(task.dueAt) - new Date();
+    badge.textContent = diff <= 0 ? "Overdue" : formatRemainingTime(diff);
+  });
+}
+
+setInterval(updateCountdownBadges, 1000);
