@@ -7,6 +7,10 @@ let draggedTaskId = null;
 let touchDraggedTaskId = null;
 let touchStartY = 0;
 
+let completedCollapsed = JSON.parse(localStorage.getItem("completedCollapsed")) ?? false;
+
+let suppressFlip = false;
+
 /* ===============================
    Render a single task
 ================================ */
@@ -121,7 +125,7 @@ function renderTask(task) {
   toggleButton.className = "task-toggle";
   toggleButton.setAttribute("aria-label", "Toggle task completion");
 
-  toggleButton.addEventListener("click", function () {
+  toggleButton.addEventListener("click", () => {
     toggleTask(task.id);
     renderTasks();
   });
@@ -328,9 +332,52 @@ function renderTask(task) {
     });
   }
 
-  taskListElement.appendChild(taskItem);
+  return taskItem;
 }
 
+function createCompletedHeader() {
+  const header = document.createElement("div");
+  header.className = "completed-header";
+  header.tabIndex = 0;
+
+  const arrow = document.createElement("span");
+  arrow.className = "completed-arrow";
+  arrow.textContent = completedCollapsed ? "▶" : "▼";
+  
+  const label = document.createElement("span");
+  label.textContent = "Completed tasks";
+
+  header.appendChild(arrow);
+  header.appendChild(label);
+
+  header.addEventListener("click", toggleCompleted);
+  header.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleCompleted();
+    }
+  });
+
+  return header;
+}
+
+function toggleCompleted() {
+  suppressFlip = true;
+
+  completedCollapsed = !completedCollapsed;
+  localStorage.setItem("completedCollapsed", JSON.stringify(completedCollapsed));
+
+  const arrow = document.getElementById("completedArrow");
+  if (arrow) {
+    arrow.classList.toggle("expanded", !completedCollapsed);
+  }
+
+  renderTasks();
+
+  requestAnimationFrame(() => {
+    suppressFlip = false;
+  });
+}
 
 /* ===============================
    Render all tasks (FLIP)
@@ -352,12 +399,38 @@ function renderTasks() {
     return;
   }
 
+  const fragment = document.createDocumentFragment();
+
   const activeTasks = tasks.filter(t => !t.completed);
   const completedTasks = tasks.filter(t => t.completed);
 
-  activeTasks.forEach(renderTask);
-  completedTasks.forEach(renderTask);
+  activeTasks.forEach(task => {fragment.appendChild(renderTask(task))});
 
+  if (completedTasks.length > 0) {
+    fragment.appendChild(createCompletedHeader());
+
+    completedTasks.forEach(task => {
+      const item = renderTask(task);
+      if (completedCollapsed) {
+        item.classList.add("completed-hidden");
+      }
+      fragment.appendChild(item);
+    });
+  }
+
+  taskListElement.appendChild(fragment);
+  
+  // if (completedTasks.length > 0) {
+  //   const devider = document.createElement("div");
+  //   devider.className = "completed-devider";
+  //   devider.textContent = "Completed Tasks";
+
+  //   taskListElement.appendChild(devider);
+
+  //   completedTasks.forEach(renderTask);
+  // }
+
+  if (!suppressFlip) {
   document.querySelectorAll(".task-item").forEach(item => {
     const oldPos = previousPositions.get(item.dataset.id);
     if (!oldPos) return;
@@ -371,10 +444,11 @@ function renderTasks() {
 
       requestAnimationFrame(() => {
         item.style.transform = "";
-        item.style.transition = "";
+        item.style.transition = "transform 250ms cubic-bezier(0.4, 0, 0.2, 1)";
       });
     }
   });
+}
 }
 
 function addDueBadge(container, text, type) {
