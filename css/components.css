@@ -293,7 +293,7 @@ button:focus-visible, .task-edit-input:focus-visible {
 .task-item.due-soon {
     border-left: 4px solid rgba(255, 193, 7, 0.8);
     background-color: rgba(255, 193, 7, 0.06);
-    animation: dueSoonPulse 2s infinite;
+    animation: dueSoonPulse 2s infinite ease;
 }
 
 /* Overdue */
@@ -329,6 +329,6 @@ button:focus-visible, .task-edit-input:focus-visible {
     /* 25% {background-color: rgba(255, 193, 7, 0.12)} */
     /* 50% {background-color: rgba(255, 193, 7, 0.3)} */
     /* 75% {background-color: rgba(255, 193, 7, 0.45);} */
-    100% {background-color: rgba(255, 193, 7, 0.205)}
+    100% {background-color: rgba(255, 193, 7, 0.15)}
 }
 
