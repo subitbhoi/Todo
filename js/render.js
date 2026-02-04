@@ -11,6 +11,24 @@ let completedCollapsed = JSON.parse(localStorage.getItem("completedCollapsed")) 
 
 let suppressFlip = false;
 
+// ===== Uncompleted tasks header =====
+const activeHeader = document.createElement("div");
+activeHeader.className = "active-tasks-header";
+activeHeader.style.display = "none";
+
+const activeLabel = document.createElement("span");
+activeLabel.textContent = "Tasks";
+
+const activeCount = document.createElement("span");
+activeCount.className = "active-count";
+
+activeHeader.appendChild(activeLabel);
+activeHeader.appendChild(activeCount);
+
+// insert ABOVE task list
+taskListElement.parentNode.insertBefore(activeHeader, taskListElement);
+
+
 /* ===============================
    Render a single task
 ================================ */
@@ -342,13 +360,23 @@ function createCompletedHeader() {
 
   const arrow = document.createElement("span");
   arrow.className = "completed-arrow";
-  arrow.textContent = completedCollapsed ? "▶" : "▼";
+  arrow.textContent =  "▶";
+  if (!completedCollapsed) {
+    arrow.classList.add("expanded");
+  }
   
   const label = document.createElement("span");
   label.textContent = "Completed tasks";
 
+  const completedCountEl = document.createElement("span");
+  completedCountEl.className = "completed-count";
+  completedCountEl.textContent = "";
+
   header.appendChild(arrow);
   header.appendChild(label);
+  header.appendChild(completedCountEl);
+
+  console.log("completed count element added:", completedCountEl);
 
   header.addEventListener("click", toggleCompleted);
   header.addEventListener("keydown", e => {
@@ -419,16 +447,8 @@ function renderTasks() {
   }
 
   taskListElement.appendChild(fragment);
-  
-  // if (completedTasks.length > 0) {
-  //   const devider = document.createElement("div");
-  //   devider.className = "completed-devider";
-  //   devider.textContent = "Completed Tasks";
 
-  //   taskListElement.appendChild(devider);
-
-  //   completedTasks.forEach(renderTask);
-  // }
+  updateCompletedCount();
 
   if (!suppressFlip) {
   document.querySelectorAll(".task-item").forEach(item => {
@@ -449,6 +469,29 @@ function renderTasks() {
     }
   });
 }
+
+ updateActiveHeader();
+}
+
+function updateActiveHeader() {
+  const count = tasks.filter(t => !t.completed).length;
+
+  if (count === 0) {
+    activeHeader.style.display = "none";
+    return;
+  }
+
+  activeHeader.style.display = "flex";
+  activeCount.textContent = `(${count})`;
+}
+
+function updateCompletedCount() {
+  const completedCountEl = document.querySelector(".completed-count");
+  if (!completedCountEl) return;
+
+  const completedCount = tasks.filter(t => t.completed).length;
+
+  completedCountEl.textContent = completedCount > 0 ? `(${completedCount})` : "";
 }
 
 function addDueBadge(container, text, type) {

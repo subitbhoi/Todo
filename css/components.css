@@ -21,7 +21,7 @@ This file contains styles for the components
 
 .empty-state {
     padding: 24px;
-    color: var(--text-secondary);;
+    color: var(--text-secondary);
     font-size: 14px;
     text-align: center;
 }
@@ -124,6 +124,7 @@ This file contains styles for the components
     from {
         opacity: 0.6;
     }
+
     to {
         opacity: 1;
     }
@@ -133,7 +134,7 @@ This file contains styles for the components
     margin-left: auto;
     background: none;
     border: none;
-    color: var(--text-secondary);;
+    color: var(--text-secondary);
     font-size: 14px;
     cursor: pointer;
     opacity: 0;
@@ -363,10 +364,12 @@ button:focus-visible, .task-edit-input:focus-visible {
    Completed task grouping
 ============================ */
 .completed-header {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 8px 20px;
+  padding-top: 14px;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -377,6 +380,20 @@ button:focus-visible, .task-edit-input:focus-visible {
 
 .completed-header:hover {
   color: var(--text-primary);
+}
+
+.completed-header:hover .completed-count {
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+.completed-header:has(.completed-arrow.expanded) {
+  color: var(--text-primary);
+}
+
+.completed-header:has(.completed-arrow.expanded) .completed-count {
+  color: var(--text-primary);
+  opacity: 1;
 }
 
 .completed-arrow {
@@ -395,9 +412,52 @@ button:focus-visible, .task-edit-input:focus-visible {
 
 .completed-header::before {
     content: "";
-    display: block;
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
     height: 1px;
     background: var(--border-color);
-    margin-bottom: 6px;
 }
+
+.completed-count {
+  margin-left: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.active-tasks-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  padding-top: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+  text-transform: uppercase;
+}
+
+.active-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.active-tasks-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 1px;
+    background: var(--border-color);
+}
+
 
