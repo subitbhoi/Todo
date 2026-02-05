@@ -25,7 +25,6 @@ activeCount.className = "active-count";
 activeHeader.appendChild(activeLabel);
 activeHeader.appendChild(activeCount);
 
-// insert ABOVE task list
 taskListElement.parentNode.insertBefore(activeHeader, taskListElement);
 
 

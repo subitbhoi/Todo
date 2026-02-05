@@ -19,3 +19,31 @@ startReminderEngine();
 setInterval(() => {
   renderTasks();
 }, 60_000);
+
+const inputEl = document.getElementById("taskInput");
+const addBtn = document.getElementById("addTaskBtn");
+const taskInputWrapper = document.querySelector(".task-input-wrapper")
+
+addBtn.addEventListener("click", () => {
+  const text = inputEl.value.trim();
+  if (!text) {
+    taskInputWrapper.classList.add("shake");
+
+    setTimeout(function () {
+      taskInputWrapper.classList.remove("shake");
+    }, 400);
+    return;
+  }
+
+  addTask(text);   
+  renderTasks();   // ← re-render UI
+
+  inputEl.value = "";
+  inputEl.focus();
+});
+
+inputEl.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    addBtn.click();
+  }
+});

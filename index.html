@@ -15,13 +15,17 @@
             <h1 class="app-title">Todo</h1>
         </header>
 
-        <section class="task-input">
-            <input
-            type="text"
-            class="task-input-field"
-            placeholder="Add a task"
-            aria-label="Add a task"
-            />
+        <div class="task-input-wrapper">
+            <input id="taskInput" type="text" class="task-input-field" placeholder="Add a task" aria-label="Add a task" />
+
+            <button id="addTaskBtn" class="add-task-btn" type="button" aria-label="Add task">
+                <svg class="btn-icon" viewBox="0 0 24 24" width="18" height="18">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                </svg>
+                <span class="btn-ripple"></span>
+            </button>
+        </div>
+        
             <button id="addDueBtn" type="button">Add due date</button>
             <div class="due-inputs">
                 <input type="date" id="dueDate" />
