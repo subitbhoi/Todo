@@ -504,7 +504,396 @@ button:focus-visible, .task-edit-input:focus-visible {
   cursor: grabbing;
 }
 
-.due-inputs {
+/* ==========================================================
+   DUE DATE & TIME SECTION
+   
+   Design Philosophy:
+   - Extension of the input bar's visual language
+   - Same horizontal margins, similar border/shadow treatment
+   - Collapsible panel with smooth reveal animation
+   - Premium easing curves matching the add-task button
+   
+   Consistency Strategy:
+   - Uses same --border-color, --accent-color, --card-color
+   - Same cubic-bezier easing as input bar (0.4, 0, 0.2, 1)
+   - Same shadow opacity values for unified depth
+   - Same focus ring treatment for accessibility
+   ==========================================================*/
+
+/* ────────────────────────────────────────────────────────
+   SECTION CONTAINER
+   Aligns with input bar horizontally
+   ──────────────────────────────────────────────────────── */
+.due-section {
+  margin: -8px 20px -25px 20px;
+  /* Reduced bottom margin for tighter spacing */
+  position: relative;
+}
+
+/* ────────────────────────────────────────────────────────
+   TRIGGER BUTTON (Expandable pill)
+   
+   States:
+   - Default: Subtle, unobtrusive secondary action
+   - Hover: Gentle lift with icon animation
+   - Active (expanded): Chevron rotates, stays active
+   ──────────────────────────────────────────────────────── */
+.due-trigger {
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+
+  /* Visual styling - subtle pill shape */
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: 20px;
+
+  /* Typography */
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+
+  /* Interaction */
+  cursor: pointer;
+
+  /* Smooth transitions matching input bar */
+  transition:
+    color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Trigger icon */
+.due-trigger-icon {
+  flex-shrink: 0;
+  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Chevron indicator */
+.due-trigger-chevron {
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition:
+    transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 200ms ease;
+}
+
+/* ─── HOVER STATE ─── */
+.due-trigger:hover {
+  color: var(--accent-color);
+  background: rgba(26, 115, 232, 0.06);
+  border-color: rgba(26, 115, 232, 0.15);
+}
+
+.due-trigger:hover .due-trigger-icon {
+  transform: scale(1.1);
+}
+
+.due-trigger:hover .due-trigger-chevron {
+  opacity: 1;
+}
+
+/* ─── ACTIVE/EXPANDED STATE ─── */
+.due-trigger.active {
+  color: var(--accent-color);
+  background: rgba(26, 115, 232, 0.08);
+  border-color: rgba(26, 115, 232, 0.2);
+}
+
+.due-trigger.active .due-trigger-chevron {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+/* ─── CLICK STATE ─── */
+.due-trigger:active {
+  transform: scale(0.97);
+}
+
+/* ─── FOCUS STATE (Accessibility) ─── */
+.due-trigger:focus {
+  outline: none;
+}
+
+.due-trigger:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--card-color),
+    0 0 0 4px var(--accent-color);
+}
+
+/* ────────────────────────────────────────────────────────
+   COLLAPSIBLE PANEL
+   
+   Animation:
+   - Height transition with overflow hidden
+   - Opacity fade for content
+   - Staggered reveal for child elements
+   ──────────────────────────────────────────────────────── */
+.due-panel {
+  /* Collapse mechanics */
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  overflow: hidden;
+
+  /* Smooth reveal transition */
+  transition:
+    grid-template-rows 350ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    margin 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  margin-top: 0;
+}
+
+/* Expanded state */
+.due-panel.expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  margin-top: 12px;
+  margin-bottom: 40px;
+  /* Push task section down when expanded */
+}
+
+/* Inner wrapper for grid animation */
+.due-pickers-row {
+  min-height: 0;
+  /* Required for grid collapse */
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  /* Panel styling - matches input bar aesthetic */
+  padding: 16px;
+  background: var(--card-color);
+  border: 1.5px solid var(--border-color);
+  border-radius: 16px;
+
+  /* Subtle depth matching input bar */
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* ────────────────────────────────────────────────────────
+   PICKER GROUPS (Date & Time)
+   
+   Each group: Label + Styled Input
+   Staggered animation when panel reveals
+   ──────────────────────────────────────────────────────── */
+.due-picker-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 120px;
+
+  /* Staggered reveal animation */
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Stagger the picker groups */
+.due-panel.expanded .due-picker-group:nth-child(1) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 100ms;
+}
+
+.due-panel.expanded .due-picker-group:nth-child(2) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 180ms;
+}
+
+/* Label styling */
+.due-picker-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.due-picker-label svg {
+  opacity: 0.7;
+}
+
+/* ────────────────────────────────────────────────────────
+   STYLED DATE/TIME INPUTS
+   
+   Matches input bar's pill aesthetic
+   Same focus states and transitions
+   ──────────────────────────────────────────────────────── */
+.due-picker-input {
+  /* Visual styling */
+  padding: 10px 14px;
+  background: var(--bg-color);
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+
+  /* Typography */
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-primary);
+
+  /* Sizing */
+  width: 100%;
+  min-width: 0;
+
+  /* Smooth transitions */
+  transition:
+    border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover state */
+.due-picker-input:hover {
+  border-color: color-mix(in srgb, var(--border-color) 70%, var(--accent-color));
+}
+
+/* Focus state - matches input bar focus */
+.due-picker-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  background: var(--card-color);
+  box-shadow:
+    0 0 0 3px rgba(26, 115, 232, 0.12),
+    0 2px 8px rgba(26, 115, 232, 0.08);
+}
+
+/* Style the calendar/clock picker icons (where supported) */
+.due-picker-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 200ms ease;
+}
+
+.due-picker-input:hover::-webkit-calendar-picker-indicator,
+.due-picker-input:focus::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+/* ────────────────────────────────────────────────────────
+   CLEAR BUTTON
+   
+   Appears with panel, allows resetting due date
+   ──────────────────────────────────────────────────────── */
+.due-clear-btn {
+  /* Layout */
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  align-self: flex-end;
+  margin-bottom: 2px;
+
+  /* Visual */
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  /* Animation */
+  opacity: 0;
+  transform: scale(0.8) translateY(8px);
+  transition:
+    opacity 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease;
+  transition-delay: 250ms;
+}
+
+/* Show when panel is expanded */
+.due-panel.expanded .due-clear-btn {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Hover state */
+.due-clear-btn:hover {
+  color: #dc3545;
+  background: rgba(220, 53, 69, 0.08);
+  border-color: rgba(220, 53, 69, 0.2);
+}
+
+/* Active state */
+.due-clear-btn:active {
+  transform: scale(0.92);
+  transition-delay: 0ms;
+}
+
+/* Focus state */
+.due-clear-btn:focus {
+  outline: none;
+}
+
+.due-clear-btn:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--card-color),
+    0 0 0 4px #dc3545;
+}
+
+/* ────────────────────────────────────────────────────────
+   DUE DATE ACTIVE STATE
+   When a due date is set, show visual indicator
+   ──────────────────────────────────────────────────────── */
+.due-trigger.has-due {
+  color: var(--accent-color);
+  background: rgba(26, 115, 232, 0.08);
+  border-color: rgba(26, 115, 232, 0.25);
+}
+
+.due-trigger.has-due .due-trigger-icon {
+  color: var(--accent-color);
+}
+
+/* Badge showing the set date */
+.due-trigger .due-badge-preview {
+  display: none;
+  padding: 2px 8px;
+  background: var(--accent-color);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+.due-trigger.has-due .due-badge-preview {
+  display: inline-block;
+  animation: badgePop 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badgePop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* .due-inputs {
     display: none;
     font-size: 13px;
     
@@ -523,7 +912,7 @@ button:focus-visible, .task-edit-input:focus-visible {
     font-size: 13px;
     cursor: pointer;
     padding: 4px 0;
-}
+} */
 
 .task-meta-editable {
     cursor: pointer;
