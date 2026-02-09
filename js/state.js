@@ -1,13 +1,15 @@
 // This file manages the application's data state
+/* ===========================================================
+   DATA STATE
+   
+   Handles applications data
+============================================================== */
 
 const STORAGE_KEY = "todo-app-tasks";
 
 let tasks = loadTasksFromStorage();
 
-/**
- * Creates a new task object and adds it to the tasks array.
- */
-
+/* ────── CREATES NEW TASK OBJECT & ADDS TO TASKS ARRAY ────── */
 function addTask(text) {
     const now = new Date();
   const dateInput = document.getElementById("dueDate");
@@ -22,7 +24,7 @@ if (hasDate || hasTime) {
   let datePart;
   let timePart;
 
-  // Case 1: Date only → use current time
+  /* Case 1: Date Only */ 
   if (hasDate && !hasTime) {
     datePart = dateInput.value;
 
@@ -31,7 +33,7 @@ if (hasDate || hasTime) {
       .slice(0, 5); // HH:MM
   }
 
-  // Case 2: Time only → use today
+  /* Case 2: Time Only */ 
   if (!hasDate && hasTime) {
     datePart = now
       .toISOString()
@@ -40,7 +42,7 @@ if (hasDate || hasTime) {
     timePart = timeInput.value;
   }
 
-  // Case 3: Date + Time
+  /* Case 3: Date + Time */
   if (hasDate && hasTime) {
     datePart = dateInput.value;
     timePart = timeInput.value;
@@ -48,7 +50,7 @@ if (hasDate || hasTime) {
 
   const combined = new Date(`${datePart}T${timePart}`);
 
-  // ❌ Prevent past date/time
+  /* Prevent Past Date & Time */
   if (combined < now) {
     alert("You cannot set a task in the past.");
     return;
@@ -79,16 +81,13 @@ if (hasDate || hasTime) {
   addDueBtn.style.display = "inline-block";
   }
 
-  // reset inputs
+  /* Reset Inputs */
   dateInput.value = "";
   timeInput.value = "";
 
 }
 
-/**
- * Toggle the completed of a task by its ID.
- */
-
+/* ────── TOGGLE COMPLITION ────── */
 function toggleTask(id) {
   tasks = tasks.map(task =>
     task.id === id
@@ -147,6 +146,7 @@ function deleteTask(id) {
     saveTasksToStorage();
 }
 
+/* ────── TASK REORDER ────── */
 function moveTaskUp(id) {
     const index = tasks.findIndex(task => task.id === id);
 
@@ -167,14 +167,13 @@ function moveTaskDown(id) {
 
     const newTasks = [...tasks];
 
-    // [newTasks[index], newTasks[index - 1]] = [newTasks[index + 1], newTasks[index]];
     [newTasks[index + 1], newTasks[index]] = [newTasks[index], newTasks[index + 1]];
 
     tasks = newTasks;
     saveTasksToStorage();
 }
 
-// Reorder logic
+/* Reorder logic */
 function reorderTask(draggedId, targetId) {
     const draggedIndex = tasks.findIndex(t => t.id === draggedId);
     const targetIndex = tasks.findIndex(t => t.id === targetId);

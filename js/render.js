@@ -1,8 +1,12 @@
-// This file is responsible for rendering the UI based on the application state
+/* ===========================================================
+   UI RENDER
+   
+   Handles UI rendering based on application state
+============================================================== */
 
 const taskListElement = document.querySelector(".task-list");
 
-// Drag state
+/* ────── DRAG STATES ────── */
 let draggedTaskId = null;
 let touchDraggedTaskId = null;
 let touchStartY = 0;
@@ -11,7 +15,23 @@ let completedCollapsed = JSON.parse(localStorage.getItem("completedCollapsed")) 
 
 let suppressFlip = false;
 
-// ===== Uncompleted tasks header =====
+/* ===== UNCOMPLETED TASKS HEADER ===== */
+
+const crossIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+crossIcon.setAttribute("viewBox", "0 0 24 24");
+crossIcon.setAttribute("width", "16");
+crossIcon.setAttribute("height", "16");
+crossIcon.setAttribute("fill", "none");
+crossIcon.classList.add("uncompleted-icon");
+
+crossIcon.innerHTML = `
+  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M9 9l6 6M15 9l-6 6"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"/>
+`;
+
 const activeHeader = document.createElement("div");
 activeHeader.className = "active-tasks-header";
 activeHeader.style.display = "none";
@@ -22,15 +42,15 @@ activeLabel.textContent = "Tasks";
 const activeCount = document.createElement("span");
 activeCount.className = "active-count";
 
+/* ────── APPEND ORDER ────── */
+activeHeader.appendChild(crossIcon);
 activeHeader.appendChild(activeLabel);
 activeHeader.appendChild(activeCount);
 
 taskListElement.parentNode.insertBefore(activeHeader, taskListElement);
 
+/* ===== RENDER A SINGLE TASK ===== */
 
-/* ===============================
-   Render a single task
-================================ */
 function renderTask(task) {
   const mainRow = document.createElement("div");
   mainRow.className = "task-main-row";
@@ -51,29 +71,28 @@ function renderTask(task) {
   }
 
   if (task.dueAt && !task.completed) {
-  const now = new Date();
-  const dueDate = new Date(task.dueAt);
-  const diffMs = dueDate - now;
+    const now = new Date();
+    const dueDate = new Date(task.dueAt);
+    const diffMs = dueDate - now;
 
-  taskItem.classList.remove("due-soon", "overdue");
+    taskItem.classList.remove("due-soon", "overdue");
 
-  if (diffMs <= 0) {
-    taskItem.classList.add("overdue");
-  } 
-  else if (diffMs <= 15 * 60 * 1000) {
-    // ONLY pulse in last 15 minutes
-    taskItem.classList.add("due-soon");
+    if (diffMs <= 0) {
+      taskItem.classList.add("overdue");
+    }
+    else if (diffMs <= 15 * 60 * 1000) {
+      taskItem.classList.add("due-soon"); // ONLY pulse in last 15 minutes
+    }
   }
-}
 
-/* ===== Drag Handle ===== */
+  /* ────── DRAG HANDLE ────── */
   const dragHandle = document.createElement("button");
   dragHandle.className = "task-drag-handle";
   dragHandle.textContent = "⋮⋮";
   dragHandle.setAttribute("aria-label", "Reorder task");
   dragHandle.setAttribute("draggable", "true");
 
-  // Desktop drag start
+  /* Desktop Drag Start */
   dragHandle.addEventListener("dragstart", function (e) {
     draggedTaskId = task.id;
     taskItem.classList.add("dragging");
@@ -86,7 +105,7 @@ function renderTask(task) {
     taskItem.classList.remove("dragging");
   });
 
-  // Mobile touch drag
+  /* Mobile Touch Drag */
   dragHandle.addEventListener("touchstart", function (e) {
     if (e.touches.length !== 1) return;
 
@@ -128,7 +147,7 @@ function renderTask(task) {
     touchDraggedTaskId = null;
   });
 
-  /* ===== Drop target ===== */
+  /* ────── DROP TARGET ────── */
   taskItem.addEventListener("dragover", e => e.preventDefault());
 
   taskItem.addEventListener("drop", function () {
@@ -137,7 +156,7 @@ function renderTask(task) {
     renderTasks();
   });
 
-  /* ===== Toggle completion ===== */
+  /* ────── TOGGLE COMPLETION ────── */
   const toggleButton = document.createElement("button");
   toggleButton.className = "task-toggle";
   toggleButton.setAttribute("aria-label", "Toggle task completion");
@@ -147,12 +166,12 @@ function renderTask(task) {
     renderTasks();
   });
 
-  /* ===== Task text ===== */
+  /* ────── TASK TEXT ────── */
   const taskText = document.createElement("span");
   taskText.className = "task-text";
   taskText.textContent = task.text;
 
-  /* ===== Delete ===== */
+  /* ────── DELETE LOGIC ────── */
   const deleteButton = document.createElement("button");
   deleteButton.className = "task-delete";
   deleteButton.textContent = "✕";
@@ -164,7 +183,7 @@ function renderTask(task) {
     renderTasks();
   });
 
-  /* ===== Keyboard support ===== */
+  /* ────── KEYBOARD FUNCTIONALITY FOR TASKS LIST ────── */
   taskItem.addEventListener("keydown", function (e) {
     if (e.target.tagName === "INPUT") {
       return;
@@ -229,7 +248,7 @@ function renderTask(task) {
     }
   });
 
-  /* ===== Append order ===== */
+  /* ────── APPEND ORDER ────── */
   leftControls.appendChild(dragHandle);
   leftControls.appendChild(toggleButton);
 
@@ -239,16 +258,14 @@ function renderTask(task) {
 
   mainRow.addEventListener("dblclick", e => {
     if (task.completed) return;
-    // ignore buttons (toggle, delete, drag)
-    if (e.target.closest("button")) return;
+    if (e.target.closest("button")) return; // ignore buttons (toggle, delete, drag)
 
     startInlineEdit(taskItem, task);
   });
 
-
   taskItem.appendChild(mainRow);
 
-  /*=====Due date =====*/
+  /* ────── DUE DATE & TIME ────── */
   if (task.dueAt) {
     const date = new Date(task.dueAt);
 
@@ -272,58 +289,56 @@ function renderTask(task) {
     timeText.textContent = date.toLocaleTimeString(undefined, {
       timeStyle: "short"
     });
- 
+
     timeGroup.appendChild(clockIcon);
     timeGroup.appendChild(timeText);
 
 
     if (task.dueAt && !task.completed) {
-  const now = new Date();
-  const diffMs = new Date(task.dueAt) - now;
+      const now = new Date();
+      const diffMs = new Date(task.dueAt) - now;
 
-  const DAY = 24 * 60 * 60 * 1000;
-  const HOUR = 60 * 60 * 1000;
-  const MIN30 = 30 * 60 * 1000;
-  const MIN15 = 15 * 60 * 1000;
+      const DAY = 24 * 60 * 60 * 1000;
+      const HOUR = 60 * 60 * 1000;
+      const MIN30 = 30 * 60 * 1000;
+      const MIN15 = 15 * 60 * 1000;
 
-  let badgeType = null;
-  let badgeText = null;
+      let badgeType = null;
+      let badgeText = null;
 
-  if (diffMs <= 0) {
-    badgeType = "overdue";
-    badgeText = "Overdue";
-  } else if (diffMs < MIN30) {
-    badgeType = "due-soon";
-    badgeText = formatRemainingTime(diffMs);
-  } else if (diffMs < HOUR) {
-    badgeType = "due-warning";
-    badgeText = formatRemainingTime(diffMs);
-  } else if (diffMs <= 7 * DAY) {
-    badgeType = "due-far";
-    badgeText = formatRemainingTime(diffMs);
-  }
+      if (diffMs <= 0) {
+        badgeType = "overdue";
+        badgeText = "Overdue";
+      } else if (diffMs < MIN30) {
+        badgeType = "due-soon";
+        badgeText = formatRemainingTime(diffMs);
+      } else if (diffMs < HOUR) {
+        badgeType = "due-warning";
+        badgeText = formatRemainingTime(diffMs);
+      } else if (diffMs <= 7 * DAY) {
+        badgeType = "due-far";
+        badgeText = formatRemainingTime(diffMs);
+      }
 
-  // Add badge ONLY if <= 7 days
-  if (badgeType) {
-    addDueBadge(timeGroup, badgeText, badgeType);
-  }
+      if (badgeType) {
+        addDueBadge(timeGroup, badgeText, badgeType); // Add badge only if <= 7 days
+      }
 
-  // 🔥 Pulse ONLY <15 mins
-  if (diffMs < MIN15 && diffMs > 0) {
-    taskItem.classList.add("due-pulse");
-  } else {
-    taskItem.classList.remove("due-pulse");
-  }
-}
+      if (diffMs < MIN15 && diffMs > 0) {
+        taskItem.classList.add("due-pulse"); // Pulse only if due < 15 mins
+      } else {
+        taskItem.classList.remove("due-pulse");
+      }
+    }
 
-
+    /* ────── APPEND ORDER ────── */
     metaRow.appendChild(calendarIcon);
     metaRow.appendChild(dateText);
     metaRow.appendChild(timeGroup);
 
     taskItem.appendChild(metaRow);
 
-
+    /* ────── INLINE DUE EDIT ────── */
     calendarIcon.addEventListener("dblclick", e => {
       e.stopPropagation();
       if (task.completed) return;
@@ -352,30 +367,52 @@ function renderTask(task) {
   return taskItem;
 }
 
+/* ===== COMPLETED TASKS ===== */
+
 function createCompletedHeader() {
   const header = document.createElement("div");
   header.className = "completed-header";
   header.tabIndex = 0;
 
-  const arrow = document.createElement("span");
-  arrow.className = "completed-arrow";
-  arrow.textContent =  "▶";
+  /* ────── CHECKMARK ICON ────── */
+  const checkIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  checkIcon.setAttribute("viewBox", "0 0 24 24");
+  checkIcon.setAttribute("width", "16");
+  checkIcon.setAttribute("height", "16");
+  checkIcon.setAttribute("fill", "none");
+  checkIcon.classList.add("completed-icon");
+  checkIcon.innerHTML = `
+    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  `;
+
+  /* ────── CHEVRON ARROW ICON ────── */
+  const chevron = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  chevron.setAttribute("viewBox", "0 0 24 24");
+  chevron.setAttribute("width", "14");
+  chevron.setAttribute("height", "14");
+  chevron.setAttribute("fill", "none");
+  chevron.classList.add("completed-chevron");
+  chevron.id = "completedArrow";
   if (!completedCollapsed) {
-    arrow.classList.add("expanded");
+    chevron.classList.add("expanded");
   }
-  
+  chevron.innerHTML = `
+    <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  `;
+
   const label = document.createElement("span");
-  label.textContent = "Completed tasks";
+  label.textContent = "Completed";
 
   const completedCountEl = document.createElement("span");
   completedCountEl.className = "completed-count";
   completedCountEl.textContent = "";
 
-  header.appendChild(arrow);
+  /* ────── APPEND ORDER ────── */
+  header.appendChild(checkIcon);
+  header.appendChild(chevron);
   header.appendChild(label);
   header.appendChild(completedCountEl);
-
-  console.log("completed count element added:", completedCountEl);
 
   header.addEventListener("click", toggleCompleted);
   header.addEventListener("keydown", e => {
@@ -388,27 +425,35 @@ function createCompletedHeader() {
   return header;
 }
 
+/* ────── COMPLETED TASK SECTION ────── */
 function toggleCompleted() {
   suppressFlip = true;
 
   completedCollapsed = !completedCollapsed;
   localStorage.setItem("completedCollapsed", JSON.stringify(completedCollapsed));
 
-  const arrow = document.getElementById("completedArrow");
-  if (arrow) {
-    arrow.classList.toggle("expanded", !completedCollapsed);
+  /* Update chevron rotation */
+  const chevron = document.getElementById("completedArrow");
+  if (chevron) {
+    chevron.classList.toggle("expanded", !completedCollapsed);
   }
 
-  renderTasks();
+  /* Toggle visibility of completed task items */
+  document.querySelectorAll(".task-item.completed").forEach(item => {
+    if (completedCollapsed) {
+      item.classList.add("completed-hidden");
+    } else {
+      item.classList.remove("completed-hidden");
+    }
+  });
 
   requestAnimationFrame(() => {
     suppressFlip = false;
   });
 }
 
-/* ===============================
-   Render all tasks (FLIP)
-================================ */
+/* ===== RENDER ALL TASKS (FLIP) ====== */
+
 function renderTasks() {
   const previousPositions = new Map();
 
@@ -431,8 +476,10 @@ function renderTasks() {
   const activeTasks = tasks.filter(t => !t.completed);
   const completedTasks = tasks.filter(t => t.completed);
 
-  activeTasks.forEach(task => {fragment.appendChild(renderTask(task))});
+  /* Render active tasks */
+  activeTasks.forEach(task => fragment.appendChild(renderTask(task)));
 
+  /* Render completed section if there are completed tasks */
   if (completedTasks.length > 0) {
     fragment.appendChild(createCompletedHeader());
 
@@ -449,29 +496,48 @@ function renderTasks() {
 
   updateCompletedCount();
 
+  /* ────── FLIP ANIMATION ────── */
   if (!suppressFlip) {
-  document.querySelectorAll(".task-item").forEach(item => {
-    const oldPos = previousPositions.get(item.dataset.id);
-    if (!oldPos) return;
+    document.querySelectorAll(".task-item").forEach(item => {
+      const oldPos = previousPositions.get(item.dataset.id);
+      if (!oldPos) return;
 
-    const newPos = item.getBoundingClientRect();
-    const deltaY = oldPos.top - newPos.top;
+      const newPos = item.getBoundingClientRect();
+      const deltaY = oldPos.top - newPos.top;
 
-    if (deltaY) {
-      item.style.transform = `translateY(${deltaY}px)`;
-      item.style.transition = "none";
+      if (deltaY) {
+        item.style.transform = `translateY(${deltaY}px)`;
+        item.style.transition = "none";
 
-      requestAnimationFrame(() => {
-        item.style.transform = "";
-        item.style.transition = "transform 250ms cubic-bezier(0.4, 0, 0.2, 1)";
-      });
+        requestAnimationFrame(() => {
+          item.style.transform = "";
+          item.style.transition = "transform 250ms cubic-bezier(0.4, 0, 0.2, 1)";
+        });
+      }
+    });
+  }
+
+  updateActiveHeader();
+}
+
+/* After FLIP calculation, apply the proper collapsed/expanded state */
+const panel = document.getElementById("completedPanel");
+if (panel) {
+  requestAnimationFrame(() => {
+    panel.style.transition = "";
+    if (completedCollapsed) {
+      panel.classList.remove("expanded");
     }
   });
 }
 
- updateActiveHeader();
+/* Sync chevron state */
+const chevron = document.querySelector(".completed-chevron");
+if (chevron) {
+  chevron.classList.toggle("expanded", !completedCollapsed);
 }
 
+/* ────── ACTIVE TASKS COUNT ────── */
 function updateActiveHeader() {
   const count = tasks.filter(t => !t.completed).length;
 
@@ -484,6 +550,7 @@ function updateActiveHeader() {
   activeCount.textContent = `(${count})`;
 }
 
+/* ────── COMPLETED TASKS COUNT ────── */
 function updateCompletedCount() {
   const completedCountEl = document.querySelector(".completed-count");
   if (!completedCountEl) return;
@@ -494,7 +561,8 @@ function updateCompletedCount() {
 }
 
 function addDueBadge(container, text, type) {
-  // prevent duplicates
+
+  /* prevent duplicates */
   if (container.querySelector(".due-badge")) return;
 
   const badge = document.createElement("span");
@@ -504,9 +572,9 @@ function addDueBadge(container, text, type) {
   container.appendChild(badge);
 }
 
-/* ===============================
-   Inline Editing
-================================ */
+/* ===== INLINE EDIT =====*/
+
+/* ────── TASKS INLINE EDIT ────── */
 function startInlineEdit(taskItem, task) {
   const originalText = task.text;
 
@@ -515,12 +583,11 @@ function startInlineEdit(taskItem, task) {
   input.className = "task-edit-input";
   input.value = originalText;
 
-  // Find the text element and its parent (mainRow)
+  /* Find the text element and its parent (mainRow) */
   const textEl = taskItem.querySelector(".task-text");
   const mainRow = taskItem.querySelector(".task-main-row");
 
-  // Replace within the correct parent
-  mainRow.replaceChild(input, textEl);
+  mainRow.replaceChild(input, textEl); // Replace within the correct parent
 
   input.focus();
   input.select();
@@ -558,8 +625,8 @@ function startInlineEdit(taskItem, task) {
   input.addEventListener("blur", save, { once: true });
 }
 
-/*===== Due inline edit =====*/
-function startInlineDueEdit(taskItem, task) {
+/* ────── DUE INLINE EDIT ────── */
+function startInlineDueEdit(taskItem, task, focusField) {
   const originalDueAt = task.dueAt;
   const originalDate = new Date(originalDueAt);
 
@@ -577,7 +644,14 @@ function startInlineDueEdit(taskItem, task) {
   metaRow.appendChild(dateInput);
   metaRow.appendChild(timeInput);
 
-  dateInput.focus();
+  /* Date and Time input focus logic */
+  requestAnimationFrame(() => {
+    if (focusField === "time") {
+      timeInput.focus();
+    } else {
+      dateInput.focus();
+    }
+  });
 
   let saved = false;
 
@@ -632,17 +706,17 @@ function startInlineDueEdit(taskItem, task) {
     }
   });
 
-  // Use focusout on metaRow to detect when focus leaves BOTH inputs
+  /* Use focusout on metaRow to detect when focus leaves both date & time inputs */
   metaRow.addEventListener("focusout", function (e) {
-    // If focus is moving to the other input inside metaRow, don't save yet
-    if (metaRow.contains(e.relatedTarget)) return;
+
+    if (metaRow.contains(e.relatedTarget)) return; // If focus is moving to the other input inside metaRow, don't save yet
     save();
   });
 }
 
-/* ===============================
-   Callender and Clock Icon
-================================ */
+/* ===== CALENDAR & CLOCK ICON ===== */
+
+/* ────── CALENDAR ICON ────── */
 function createCalendarIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
@@ -664,6 +738,7 @@ function createCalendarIcon() {
   return svg;
 }
 
+/* ────── CLOCK ICON ────── */
 function createClockIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
@@ -681,6 +756,8 @@ function createClockIcon() {
 
   return svg;
 }
+
+/* ===== DUE TIME LOGIC ===== */
 
 function formatRemainingTime(ms) {
   if (ms <= 0) return "Overdue";
@@ -705,6 +782,7 @@ function formatRemainingTime(ms) {
   return `${totalSeconds}s left`;
 }
 
+/* ────── COUNTDOWN BADGE ────── */
 function updateCountdownBadges() {
   document.querySelectorAll(".task-item").forEach(item => {
     const id = Number(item.dataset.id);

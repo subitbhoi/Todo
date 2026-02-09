@@ -1,5 +1,10 @@
-// This file is responsible for reminders
+/* ===========================================================
+   REMINDERS
+   
+   Handles reminders and notifications
+============================================================== */
 
+/* ────── INBUILT REMINDER FUNCTION ────── */
 function startReminderEngine() {
   setInterval(() => {
     const now = new Date();

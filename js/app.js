@@ -1,11 +1,16 @@
-// This file initializes the application and connects all components
+/* ===============================================================
+   APP INITIALIZATION
+   
+   Defines application initialization and connects all components
+================================================================== */
 
-console.log("Todo App Initialized");
+// console.log("Todo App Initialized");
 
 document.addEventListener("DOMContentLoaded", function () {
   renderTasks();
 });
 
+/* ────── DUE BUTTON ────── */
 const addDueBtn = document.getElementById("addDueBtn");
 const dueInputs = document.querySelector(".due-inputs");
 
@@ -20,30 +25,26 @@ setInterval(() => {
   renderTasks();
 }, 60_000);
 
+/* ────── TASK BUTTON ────── */
 const inputEl = document.getElementById("taskInput");
 const addBtn = document.getElementById("addTaskBtn");
-const taskInputWrapper = document.querySelector(".task-input-wrapper")
+const taskInputWrapper = document.querySelector(".task-input-wrapper");
 
 addBtn.addEventListener("click", () => {
   const text = inputEl.value.trim();
   if (!text) {
     taskInputWrapper.classList.add("shake");
 
-    setTimeout(function () {
+    setTimeout(() => {
       taskInputWrapper.classList.remove("shake");
     }, 400);
+
     return;
   }
 
   addTask(text);   
-  renderTasks();   // ← re-render UI
+  renderTasks();  
 
   inputEl.value = "";
   inputEl.focus();
-});
-
-inputEl.addEventListener("keydown", e => {
-  if (e.key === "Enter") {
-    addBtn.click();
-  }
 });
