@@ -865,6 +865,11 @@
   display: none;
 }
 
+/* ────── COMPLETED TASK STYLING ────── */
+.task-item.archived-hidden {
+  display: none;
+}
+
 /* ===== DUE DATE STATES & BADGES ===== */
 
 /* ────── TASK URGENCY STATES ────── */
@@ -1081,6 +1086,112 @@
   /* background: rgba(52, 168, 83, 0.12); */ 
 }
 
+/* ────── ARCHIVED HEADER ────── */
+.archived-header {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-11) var(--space-11) var(--space-7) var(--space-11);
+  border-width: 0;
+  margin: 0;
+
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-2xl);
+
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  opacity: 0.95;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition:
+    color var(--duration-normal) var(--ease-out),
+    background-color var(--duration-normal) var(--ease-out),
+    border-color var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out);
+}
+
+.archived-header:hover {
+  color: var(--archive-color);
+  background: transparent;
+}
+
+.archived-header:hover .archived-icon,
+.archived-header:hover .archived-count {
+  color: var(--archive-color);
+}
+
+.archived-header:hover .archived-icon {
+  transform: scale(1.1);
+}
+
+.archived-header:hover .archived-chevron {
+  opacity: 1;
+}
+
+.archived-header:has(.archived-chevron.expanded) {
+  color: var(--archive-color);
+  background: transparent;
+  opacity: 1;
+}
+
+.archived-header:has(.archived-chevron.expanded) .archived-icon,
+.archived-header:has(.archived-chevron.expanded) .archived-count {
+  color: var(--archive-color);
+}
+
+.archived-header:active {
+  transform: scale(0.98);
+}
+
+.archived-header:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--card-color), 0 0 0 4px var(--archive-color);
+}
+
+/* Chevron */
+.archived-chevron {
+  flex-shrink: 0;
+  opacity: 1;
+  transition:
+    transform var(--duration-slow) var(--ease-spring),
+    opacity var(--duration-normal) var(--ease-out);
+}
+
+.archived-chevron.expanded {
+  transform: rotate(90deg);
+  opacity: 1;
+}
+
+/* Count Badge */
+.archived-count {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  opacity: 1;
+  padding: 2px var(--space-4);
+  background: transparent;
+  border-radius: var(--radius-md);
+
+  transition:
+    color var(--duration-normal) var(--ease-out),
+    opacity var(--duration-normal) var(--ease-out),
+    background-color var(--duration-normal) var(--ease-out);
+}
+
+.archived-header:hover .archived-count,
+.archived-header:has(.archived-chevron.expanded) .archived-count {
+  opacity: 1;
+}
+
+
 /* ────── COMPLETED PANEL ────── */
 .completed-panel {
   display: grid;
@@ -1142,6 +1253,7 @@
     transform: translateY(0);
   }
 }
+
 
 /* ===== EMPTY STATE ===== */
 

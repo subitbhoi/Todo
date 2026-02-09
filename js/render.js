@@ -12,6 +12,7 @@ let touchDraggedTaskId = null;
 let touchStartY = 0;
 
 let completedCollapsed = JSON.parse(localStorage.getItem("completedCollapsed")) ?? false;
+let archivedCollapsed = JSON.parse(localStorage.getItem("archivedCollapsed")) ?? false;
 
 let suppressFlip = false;
 
@@ -390,8 +391,9 @@ function renderTask(task) {
   return taskItem;
 }
 
-/* ===== COMPLETED TASKS ===== */
+/* ===== COMPLETED/ARCHIVED HEADER ===== */
 
+ /* ────── COMPLETED HEADER ────── */
 function createCompletedHeader() {
   const header = document.createElement("div");
   header.className = "completed-header";
@@ -448,6 +450,61 @@ function createCompletedHeader() {
   return header;
 }
 
+ /* ────── ARCHIVED HEADER ────── */
+ function createArchivedHeader() {
+ const header = document.createElement("div");
+ header.className = "archived-header";
+ header.tabIndex = 0;
+
+ const archiveIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  archiveIcon.setAttribute("viewBox", "0 0 24 24");
+  archiveIcon.setAttribute("width", "16");
+  archiveIcon.setAttribute("height", "16");
+  archiveIcon.classList.add("archived-icon");
+  archiveIcon.innerHTML = `
+    <path d="M3 7h18" stroke="currentColor" stroke-width="1.5"/>
+    <rect x="4" y="7" width="16" height="13" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+    <path d="M9 11h6" stroke="currentColor" stroke-width="1.5"/>
+  `;
+  
+  const chevron = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  chevron.setAttribute("viewBox", "0 0 24 24");
+  chevron.setAttribute("width", "14");
+  chevron.setAttribute("height", "14");
+  chevron.setAttribute("fill", "none");
+  chevron.classList.add("archived-chevron");
+  chevron.id = "archivedArrow";
+  if (!completedCollapsed) {
+    chevron.classList.add("expanded");
+  }
+  chevron.innerHTML = `
+    <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  `;
+
+  const label = document.createElement("span");
+  label.textContent = "Archived";
+
+  const archivedCountEl = document.createElement("span");
+  archivedCountEl.className = "archived-count";
+  archivedCountEl.textContent = "";
+
+  /* ────── APPEND ORDER ────── */
+  header.appendChild(archiveIcon);
+  header.appendChild(chevron);
+  header.appendChild(label);
+  header.appendChild(archivedCountEl);
+
+  header.addEventListener("click", toggleArchived);
+  header.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleArchived();
+    }
+  });
+
+  return header;
+}
+
 /* ────── COMPLETED TASK SECTION ────── */
 function toggleCompleted() {
   suppressFlip = true;
@@ -473,6 +530,30 @@ function toggleCompleted() {
   requestAnimationFrame(() => {
     suppressFlip = false;
   });
+}
+
+function toggleArchived() {
+  suppressFlip = true;
+
+  archivedCollapsed = !archivedCollapsed;
+  localStorage.setItem("archivedCollapsed", JSON.stringify(archivedCollapsed));
+
+  const chevron = document.getElementById("archivedArrow");
+  if (chevron) {
+    chevron.classList.toggle("expanded", !archivedCollapsed);
+  }
+
+  document.querySelectorAll(".task-item.archived").forEach(item => {
+    if (archivedCollapsed) {
+      item.classList.add("archived-hidden");
+    } else {
+      item.classList.remove("archived-hidden");
+    }
+  });
+
+  requestAnimationFrame(() => {
+    suppressFlip = false;
+  })
 }
 
 /* ===== RENDER ALL TASKS (FLIP) ====== */
@@ -517,27 +598,24 @@ function renderTasks() {
   }
 
   if (archivedTasks.length > 0) {
-    const archiveHeader = document.createElement("div");
-    archiveHeader.className = "archive-header";
-    archiveHeader.textContent = "Archived";
-
-    fragment.appendChild(archiveHeader);
+    fragment.appendChild(createArchivedHeader());
 
     archivedTasks.forEach(task => {
       const item = renderTask(task);
-
+      if (archivedCollapsed) {
+        item.classList.add("archived-hidden");
+      }
       const archiveBtn = item.querySelector(".task-archive");
       if (archiveBtn) {
         archiveBtn.classList.add("task-restore");
         archiveBtn.textContent = "↻";
-        archiveBtn.setAttribute("aria-label", "Restore task");
+        archiveBtn.setAttribute("aria-label", "Restore-task");
         archiveBtn.onclick = e => {
           e.stopPropagation();
           restoreTask(task.id);
           renderTasks();
         };
       }
-
       fragment.appendChild(item);
     });
   }
@@ -545,6 +623,7 @@ function renderTasks() {
   taskListElement.appendChild(fragment);
 
   updateCompletedCount();
+  updateArchivedCount();
 
   /* ────── FLIP ANIMATION ────── */
   if (!suppressFlip) {
@@ -608,6 +687,16 @@ function updateCompletedCount() {
   const completedCount = tasks.filter(t => t.completed).length;
 
   completedCountEl.textContent = completedCount > 0 ? `(${completedCount})` : "";
+}
+
+/* ────── ARCHIVED TASKS COUNT ────── */
+function updateArchivedCount() {
+  const archivedCountEl = document.querySelector(".archived-count");
+  if (!archivedCountEl) return;
+
+  const archivedCount = tasks.filter(t => t.archived).length;
+
+  archivedCountEl.textContent = archivedCount > 0 ? `(${archivedCount})` : "";
 }
 
 function addDueBadge(container, text, type) {
