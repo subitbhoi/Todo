@@ -16,6 +16,7 @@ function startReminderEngine() {
         task.dueAt &&
         !task.completed &&
         !task.reminded &&
+        !task.archived &&
         new Date(task.dueAt) <= now
       ) {
         alert(`${task.text} is due for completion`);

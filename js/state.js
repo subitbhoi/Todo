@@ -63,7 +63,8 @@ if (hasDate || hasTime) {
     text: text.trim(),
     completed: false,
     dueAt,
-    reminded: false
+    reminded: false,
+    archived: false
   };
 
   tasks = [task, ...tasks];
@@ -187,4 +188,25 @@ function reorderTask(draggedId, targetId) {
 
     tasks = updated;
     saveTasksToStorage();
+}
+
+/* ────── ARCHIVE TASK ────── */
+function archiveTask(id) {
+  tasks = tasks.map(task => 
+    task.id === id 
+    ? { ...task, archived: true } 
+    : task
+  );
+
+  saveTasksToStorage();
+}
+
+function restoreTask(id) {
+  tasks = tasks.map(task =>
+    task.id === id
+    ? { ...task, archived: false }
+    : task
+  );
+
+  saveTasksToStorage();
 }

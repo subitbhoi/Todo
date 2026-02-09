@@ -23,7 +23,7 @@ startReminderEngine();
 
 setInterval(() => {
   renderTasks();
-}, 60_000);
+}, 6000_000);
 
 /* ────── TASK BUTTON ────── */
 const inputEl = document.getElementById("taskInput");

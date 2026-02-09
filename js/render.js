@@ -61,6 +61,9 @@ function renderTask(task) {
   const leftControls = document.createElement("div");
   leftControls.className = "task-left-controls";
 
+  const rightActions = document.createElement("div");
+  rightActions.className = "task-actions";
+
   const taskItem = document.createElement("div");
   taskItem.className = "task-item";
   taskItem.dataset.id = task.id;
@@ -171,10 +174,10 @@ function renderTask(task) {
   taskText.className = "task-text";
   taskText.textContent = task.text;
 
-  /* ────── DELETE LOGIC ────── */
+  /* ────── DELETE BUTTON ────── */
   const deleteButton = document.createElement("button");
   deleteButton.className = "task-delete";
-  deleteButton.textContent = "✕";
+  deleteButton.textContent = "✖";
   deleteButton.setAttribute("aria-label", "Delete task");
 
   deleteButton.addEventListener("click", function (e) {
@@ -182,6 +185,23 @@ function renderTask(task) {
     deleteTask(task.id);
     renderTasks();
   });
+
+  /* ────── ARCHIVE BUTTON ────── */
+  const archiveButton = document.createElement("button");
+  archiveButton.className = "task-archive";
+  archiveButton.classList.add("task-archive");
+  archiveButton.textContent = "↪";
+  archiveButton.setAttribute("aria-label", "Archive task");
+
+  archiveButton.addEventListener("click", e => {
+    e.stopPropagation();
+    archiveTask(task.id);
+    renderTasks();
+  });
+
+  if (task.archived) {
+    taskItem.classList.add("archived");
+  }
 
   /* ────── KEYBOARD FUNCTIONALITY FOR TASKS LIST ────── */
   taskItem.addEventListener("keydown", function (e) {
@@ -252,9 +272,12 @@ function renderTask(task) {
   leftControls.appendChild(dragHandle);
   leftControls.appendChild(toggleButton);
 
+  rightActions.appendChild(archiveButton);
+  rightActions.appendChild(deleteButton);
+
   mainRow.appendChild(leftControls);
   mainRow.appendChild(taskText);
-  mainRow.appendChild(deleteButton);
+  mainRow.appendChild(rightActions);
 
   mainRow.addEventListener("dblclick", e => {
     if (task.completed) return;
@@ -473,8 +496,9 @@ function renderTasks() {
 
   const fragment = document.createDocumentFragment();
 
-  const activeTasks = tasks.filter(t => !t.completed);
-  const completedTasks = tasks.filter(t => t.completed);
+  const activeTasks = tasks.filter(t => !t.completed && !t.archived);
+  const completedTasks = tasks.filter(t => t.completed && !t.archived);
+  const archivedTasks = tasks.filter(t => t.archived);
 
   /* Render active tasks */
   activeTasks.forEach(task => fragment.appendChild(renderTask(task)));
@@ -488,6 +512,32 @@ function renderTasks() {
       if (completedCollapsed) {
         item.classList.add("completed-hidden");
       }
+      fragment.appendChild(item);
+    });
+  }
+
+  if (archivedTasks.length > 0) {
+    const archiveHeader = document.createElement("div");
+    archiveHeader.className = "archive-header";
+    archiveHeader.textContent = "Archived";
+
+    fragment.appendChild(archiveHeader);
+
+    archivedTasks.forEach(task => {
+      const item = renderTask(task);
+
+      const archiveBtn = item.querySelector(".task-archive");
+      if (archiveBtn) {
+        archiveBtn.classList.add("task-restore");
+        archiveBtn.textContent = "↻";
+        archiveBtn.setAttribute("aria-label", "Restore task");
+        archiveBtn.onclick = e => {
+          e.stopPropagation();
+          restoreTask(task.id);
+          renderTasks();
+        };
+      }
+
       fragment.appendChild(item);
     });
   }

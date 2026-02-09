@@ -38,6 +38,10 @@
     --danger-color: #ea4335;
     --danger-light: rgba(234, 67, 53, 0.08);
 
+    --archive-color: #1a73e8;
+    --archive-light: rgba(26, 115, 232, 0.08);
+    
+
     /* Due Date States */
     --due-far-bg: #f3f4f6;
     --due-far-text: #6b7280;

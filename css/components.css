@@ -613,6 +613,7 @@
 .task-item.completed .task-text {
   text-decoration: line-through;
   color: var(--text-tertiary);
+  opacity: 0.6;
 }
 
 /* ────── TOGGLE CHECKBOX ────── */
@@ -633,7 +634,7 @@
 }
 
 .task-toggle:hover {
-  border-color: var(--accent-color);
+  border-color: var(--success-color);
 }
 
 .task-toggle:active {
@@ -644,7 +645,7 @@
 .task-item.completed .task-toggle {
   background-color: var(--success-color);
   border-color: var(--success-color);
-  opacity: 0.6;
+  opacity: 0.4;
 }
 
 .task-item.completed .task-toggle::after {
@@ -681,44 +682,12 @@
   }
 }
 
-/* ────── DELETE BUTTON ────── */
-.task-delete {
-  margin-left: auto;
-  padding: var(--space-4);
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-
-  opacity: 0;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out);
-}
-
-.task-item:hover .task-delete,
-.task-delete:focus {
-  opacity: 1;
-}
-
-.task-delete:hover {
-  color: var(--danger-color);
-  background: var(--danger-light);
-}
-
-.task-delete:active {
-  transform: scale(0.92);
-}
-
 /* ────── DRAG HANDLE ────── */
 .task-drag-handle {
   background: none;
   border: none;
   cursor: grab;
-  color: var(--text-tertiary);
+  color: var(--text-primary);
   font-size: var(--font-size-xl);
   padding: var(--space-4);
   border-radius: var(--radius-sm);
@@ -739,6 +708,70 @@
 .task-item.dragging {
   opacity: 0.8;
   background-color: var(--accent-lighter);
+}
+
+/* ────── RIGHT-ACTIONS────── */
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.task-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.task-actions button:hover {
+  box-shadow: 0 0 0 4px currentColor inset;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.08);
+}
+
+
+.task-item:hover .task-actions button,
+.task-actions button:focus {
+  opacity: 1;
+}
+
+.task-actions button:active {
+  transform: scale(0.92);
+}
+
+/* ────── DELETE BUTTON ────── */
+.task-delete:hover {
+  color: var(--danger-color);
+  background: var(--danger-light);
+}
+
+/* ────── ARCHIVE BUTTON ────── */
+.task-archive:hover {
+  color: var(--archive-color);
+  background: var(--archive-light);
+}
+
+.task-item.archived .task-toggle,
+.task-item.archived .task-text {
+  pointer-events: none;
+}
+
+/* ────── RESTORE BUTTON ────── */
+.task-restore {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-lg);
+}
+
+.task-restore:hover {
+  color: var(--success-color);
+  background: var(--success-light);
 }
 
 /* ────── META ROW ────── */
@@ -781,8 +814,12 @@
 
 .task-item.completed .meta-clickable {
   cursor: default;
-  opacity: 0.6;
+  opacity: 0.4;
   text-decoration: none;
+}
+
+.task-item.completed .meta-clickable:hover {
+ color: var(--text-secondary);
 }
 
 .calendar-icon,
@@ -820,9 +857,9 @@
 }
 
 /* ────── COMPLETED TASK STYLING ────── */
-.task-item.completed {
+/* .task-item.completed {
   opacity: 0.6;
-}
+} */
 
 .task-item.completed-hidden {
   display: none;
